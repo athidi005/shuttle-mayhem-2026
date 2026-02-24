@@ -422,6 +422,77 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
   .pp-4{grid-template-columns:1fr 1fr;}
   .team-totals{grid-template-columns:1fr 1fr;}
 }
+
+/* ─────────── POINT DETAIL BOTTOM SHEET ─────────── */
+.bs-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;
+  display:flex;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(4px);}
+.bs-overlay.hid{display:none;}
+.bs-sheet{background:linear-gradient(175deg,#1a0a02,#0A0400);border:2px solid var(--fire1);
+  border-radius:14px 14px 0 0;width:100%;max-width:560px;padding:0;
+  box-shadow:0 -8px 40px rgba(255,69,0,.35);animation:slideUp .22s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.bs-handle{width:36px;height:4px;background:var(--stone2);border-radius:2px;margin:10px auto 0;}
+.bs-hdr{padding:12px 18px 10px;border-bottom:1px solid var(--stone2);display:flex;justify-content:space-between;align-items:center;}
+.bs-hdr h4{font-family:'Cinzel Decorative',serif;font-size:.88rem;letter-spacing:2px;color:var(--fire3);}
+.bs-body{padding:14px 18px;max-height:75vh;overflow-y:auto;}
+.bs-section{margin-bottom:14px;}
+.bs-label{font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--ash);margin-bottom:7px;font-weight:700;}
+/* 2×2 grid for scorer/conceder */
+.bs-pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.bs-player-btn{padding:12px 8px;border:2px solid var(--stone2);border-radius:8px;
+  background:rgba(255,255,255,.03);color:var(--sand);font-family:'Rajdhani',sans-serif;
+  font-weight:700;font-size:.9rem;cursor:pointer;transition:all .13s;text-align:center;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.bs-player-btn:active{transform:scale(.96);}
+.bs-player-btn.sel-scorer-a{border-color:var(--fire1);background:rgba(255,69,0,.2);color:var(--fire3);}
+.bs-player-btn.sel-scorer-b{border-color:var(--blue);background:rgba(96,165,250,.15);color:var(--blue);}
+.bs-player-btn.sel-conceder{border-color:#EF5350;background:rgba(239,83,80,.12);color:#EF5350;}
+.bs-player-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* Turbo combo buttons */
+.turbo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.turbo-btn{padding:14px 8px;border:2px solid var(--stone2);border-radius:8px;
+  background:rgba(255,255,255,.03);color:var(--sand);font-family:'Rajdhani',sans-serif;
+  font-weight:700;font-size:.82rem;cursor:pointer;transition:all .13s;text-align:center;
+  line-height:1.35;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.turbo-btn:hover{border-color:var(--fire3);}
+.turbo-btn:active{transform:scale(.96);}
+.turbo-btn.sel{border-color:var(--green);background:rgba(74,222,128,.1);color:var(--green);}
+.turbo-toggle{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.78rem;color:var(--ash);cursor:pointer;}
+.turbo-toggle input{accent-color:var(--fire1);}
+
+/* Server pill (clickable) */
+.sb-server{font-size:.72rem;color:var(--gold);text-align:center;margin-top:4px;
+  cursor:pointer;padding:4px 10px;border-radius:10px;display:inline-block;
+  border:1px solid rgba(255,215,0,.2);transition:background .15s;}
+.sb-server:hover{background:rgba(255,215,0,.08);}
+.sb-server-wrap{text-align:center;margin-top:4px;}
+
+/* Server override modal (small) */
+.srv-override-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+
+/* Reason chips in bottom sheet */
+.bs-reason-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.bs-reason-btn{padding:8px 5px;border:1.5px solid var(--stone2);border-radius:6px;
+  background:rgba(255,255,255,.03);color:var(--ash);font-family:'Rajdhani',sans-serif;
+  font-weight:600;font-size:.78rem;cursor:pointer;transition:all .13s;text-align:center;
+  -webkit-tap-highlight-color:transparent;}
+.bs-reason-btn:hover{border-color:var(--fire3);color:var(--sand);}
+.bs-reason-btn.sel{border-color:var(--green);background:rgba(74,222,128,.1);color:var(--green);font-weight:700;}
+
+/* Conceded / Organizer view */
+.organizer-lock{display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+  padding:4px 10px;border:1px solid var(--stone2);border-radius:12px;font-size:.72rem;
+  color:var(--stone3);transition:all .2s;margin-left:auto;}
+.organizer-lock:hover{border-color:var(--fire1);color:var(--fire3);}
+.org-view{display:none;}
+.org-view.visible{display:block;}
+.err-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.err-bar-fill{height:8px;border-radius:4px;background:linear-gradient(90deg,#EF5350,#C62828);flex:1;}
+.err-bar-label{font-size:.72rem;color:var(--ash);min-width:70px;}
+.err-bar-val{font-size:.72rem;color:#EF5350;font-family:'Share Tech Mono',monospace;min-width:28px;text-align:right;}
+
 </style>
 </head>
 <body>
@@ -635,8 +706,21 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 
 <!-- ══════ STATS ══════ -->
 <div class="page" id="pg-stats">
-  <div class="sh"><h2>Player Stats</h2><p>Individual performance · PPI leaderboard · Match breakdowns</p></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+    <div class="sh" style="margin-bottom:0;flex:1"><h2>Player Stats</h2></div>
+    <button class="organizer-lock" onclick="toggleOrgView()" title="Organizer view (conceded stats)">🔒 Organizer</button>
+  </div>
+  <p style="color:var(--ash);font-size:.83rem;margin-bottom:14px">Individual performance · PPI leaderboard · Match breakdowns</p>
+  <!-- Normal stats view -->
   <div id="stats-body"></div>
+  <!-- Hidden organizer view -->
+  <div class="org-view" id="org-view">
+    <div class="goldbox" style="margin-bottom:14px">
+      <strong>🔒 Organizer View — Conceded Stats</strong><br>
+      <span style="font-size:.78rem;color:var(--ash)">This view shows error patterns and defensive weaknesses. Not shown to players.</span>
+    </div>
+    <div id="org-body"></div>
+  </div>
 </div>
 
 <!-- ══════ EXPORT ══════ -->
@@ -701,6 +785,79 @@ service cloud.firestore {
 </main>
 
 <!-- ══════════════════════════════════════════════════
+     POINT DETAIL BOTTOM SHEET
+══════════════════════════════════════════════════ -->
+<div class="bs-overlay hid" id="point-sheet">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-hdr">
+      <h4 id="bs-title">Record Point</h4>
+      <button class="modal-close" onclick="closePointSheet()">✕</button>
+    </div>
+    <div class="bs-body">
+
+      <!-- STANDARD MODE: scorer + conceder separately -->
+      <div id="bs-standard-mode">
+        <div class="bs-section">
+          <div class="bs-label" id="bs-scorer-label">Who scored? (winning team)</div>
+          <div class="bs-pair-grid" id="bs-scorer-grid"></div>
+        </div>
+        <div class="bs-section">
+          <div class="bs-label" id="bs-conceder-label">Who conceded? (losing team)</div>
+          <div class="bs-pair-grid" id="bs-conceder-grid"></div>
+        </div>
+      </div>
+
+      <!-- TURBO MODE: combo buttons -->
+      <div id="bs-turbo-mode" style="display:none">
+        <div class="bs-section">
+          <div class="bs-label">Scorer / Conceder (one tap)</div>
+          <div class="turbo-grid" id="bs-turbo-grid"></div>
+        </div>
+      </div>
+
+      <!-- Reason chips (shared between modes) -->
+      <div class="bs-section">
+        <div class="bs-label">How? <span style="color:var(--stone3);font-weight:400">(optional — default: Winner)</span></div>
+        <div class="bs-reason-grid" id="bs-reason-grid">
+          <button class="bs-reason-btn sel" data-code="WINNER"  onclick="bsSelectReason('WINNER')" >🏸 Winner</button>
+          <button class="bs-reason-btn" data-code="NET"     onclick="bsSelectReason('NET')"    >🔵 Net</button>
+          <button class="bs-reason-btn" data-code="OUT"     onclick="bsSelectReason('OUT')"    >↗ Out</button>
+          <button class="bs-reason-btn" data-code="UNFORCED" onclick="bsSelectReason('UNFORCED')">😬 Unforced</button>
+          <button class="bs-reason-btn" data-code="FORCED"  onclick="bsSelectReason('FORCED')" >💥 Forced</button>
+          <button class="bs-reason-btn" data-code="SERVICE" onclick="bsSelectReason('SERVICE')">⚡ Serve Fault</button>
+        </div>
+        <!-- Other notes (shown when OTHER selected) -->
+        <input class="pp-inp" type="text" id="bs-notes" placeholder="Notes (optional)…" autocomplete="off" style="margin-top:8px"/>
+      </div>
+
+      <!-- Confirm button (only needed in OTHER mode or when auto-confirm disabled) -->
+      <div id="bs-confirm-row" style="display:none;padding-bottom:8px;">
+        <button class="btn btn-fire" style="width:100%;justify-content:center;" onclick="bsConfirm()">✓ Log Point</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SERVER OVERRIDE MODAL (small)
+══════════════════════════════════════════════════ -->
+<div class="bs-overlay hid" id="srv-override-modal">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-hdr">
+      <h4>Change Server</h4>
+      <button class="modal-close" onclick="closeServerOverride()">✕</button>
+    </div>
+    <div class="bs-body">
+      <p style="color:var(--ash);font-size:.8rem;margin-bottom:10px">Override the current server (correction). Auto-rotation continues from here.</p>
+      <div class="srv-override-grid" id="srv-override-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
      LIVE SCORING MODAL
 ══════════════════════════════════════════════════ -->
 <div class="modal-overlay hid" id="live-modal">
@@ -725,7 +882,7 @@ service cloud.firestore {
           <span id="sb-teamA" style="color:var(--fire3)">Group A</span>
           <span id="sb-teamB" style="color:var(--blue)">Group B</span>
         </div>
-        <div class="sb-server" id="sb-server">Server: —</div>
+        <div class="sb-server-wrap"><button class="sb-server" id="sb-server" onclick="openServerOverride()" title="Tap to change server">🏸 Server: —</button></div>
         <div class="sb-gp" id="sb-gp" style="display:none">🔥 GOLDEN POINT!</div>
       </div>
 
@@ -741,37 +898,33 @@ service cloud.firestore {
         <button class="btn btn-fire btn-lg" style="width:100%;justify-content:center;margin-top:8px" onclick="startMatch()">🏸 Start Match</button>
       </div>
 
-      <!-- Active scoring section: one-tap point entry -->
+      <!-- Active scoring section -->
       <div id="lm-scoring-section" style="display:none">
 
-        <!-- Quick point entry: select reason first (optional), then tap team to score -->
-        <div id="quick-point-panel">
-          <div class="pp-label" style="margin-bottom:6px">① How was the point won? <span style="color:var(--stone3);font-weight:400">(optional)</span></div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px;" id="qp-reason-grid">
-            <button class="qp-reason-btn" data-code="winner"  onclick="qpSelectReason('winner')" >🏸 Winner</button>
-            <button class="qp-reason-btn" data-code="net"     onclick="qpSelectReason('net')"    >🔵 Net</button>
-            <button class="qp-reason-btn" data-code="out"     onclick="qpSelectReason('out')"    >↗ Out</button>
-            <button class="qp-reason-btn" data-code="unforced"onclick="qpSelectReason('unforced')">😬 Unforced</button>
-            <button class="qp-reason-btn" data-code="service" onclick="qpSelectReason('service')">⚡ Serve</button>
-            <button class="qp-reason-btn" data-code="other"   onclick="qpSelectReason('other')"  >📝 Other</button>
-          </div>
-          <div class="pp-label" style="margin-bottom:8px">② Who won the point? <span style="color:var(--stone3);font-weight:400">(tap = instant score)</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;">
-            <button class="qp-team-btn" id="qpt-A" onclick="qpConfirmTeam('A')">
-              <div style="font-size:1.4rem;margin-bottom:2px">⚡</div>
-              <strong id="qpt-A-label">Group A</strong>
-              <div style="font-size:.72rem;opacity:.7;margin-top:2px" id="qpt-A-players"></div>
-            </button>
-            <button class="qp-team-btn" id="qpt-B" onclick="qpConfirmTeam('B')">
-              <div style="font-size:1.4rem;margin-bottom:2px">💎</div>
-              <strong id="qpt-B-label">Group B</strong>
-              <div style="font-size:.72rem;opacity:.7;margin-top:2px" id="qpt-B-players"></div>
-            </button>
-          </div>
+        <!-- Turbo mode toggle -->
+        <label class="turbo-toggle" style="margin-bottom:8px;">
+          <input type="checkbox" id="turbo-toggle" onchange="toggleTurboMode(this.checked)">
+          <span>⚡ <strong>Turbo Mode</strong> — combo buttons (scorer+conceder in one tap)</span>
+        </label>
+
+        <!-- Step 1: Point to which team (two big buttons) -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <button class="qp-team-btn" id="qpt-A" onclick="openPointSheet('A')">
+            <div style="font-size:1.6rem;margin-bottom:3px">⚡</div>
+            <strong style="font-size:1.05rem;display:block" id="qpt-A-label">Group A</strong>
+            <div style="font-size:.7rem;opacity:.65;margin-top:3px" id="qpt-A-players"></div>
+            <div style="font-size:.68rem;color:var(--stone3);margin-top:4px">TAP TO SCORE →</div>
+          </button>
+          <button class="qp-team-btn" id="qpt-B" onclick="openPointSheet('B')">
+            <div style="font-size:1.6rem;margin-bottom:3px">💎</div>
+            <strong style="font-size:1.05rem;display:block" id="qpt-B-label">Group B</strong>
+            <div style="font-size:.7rem;opacity:.65;margin-top:3px" id="qpt-B-players"></div>
+            <div style="font-size:.68rem;color:var(--stone3);margin-top:4px">TAP TO SCORE →</div>
+          </button>
         </div>
 
-        <!-- Point history (last 8) -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 5px;">
+        <!-- Point history -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 5px;">
           <div class="pp-label" style="margin:0">Recent Points</div>
           <button class="btn btn-ghost btn-xs" onclick="undoLastPoint()">↩ Undo Last</button>
         </div>
@@ -1226,7 +1379,7 @@ function goTo(id){
   if(tb) tb.classList.add('active');
   window.scrollTo(0,0);
   if(id==='standings') refreshStandings();
-  if(id==='stats') refreshStats();
+  if(id==='stats'){ refreshStats(); if(typeof ORG_VIEW_ON!=='undefined'&&ORG_VIEW_ON) renderOrgView(); }
 }
 function markDone(id){ const t=document.getElementById('nt-'+id); if(t) t.classList.add('done'); }
 function setSyncDot(state){
@@ -1637,33 +1790,19 @@ function advanceServer(ms){
 }
 
 // ═══════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════
-// ⑪ QUICK POINT ENTRY (one-tap UX)
-// ═══════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════
-// ⑪ QUICK POINT ENTRY — single-tap UX
-//    1. Optionally tap a reason button (toggles on/off)
-//    2. Tap "Group A" or "Group B" → point logged immediately
+// ⑪ POINT ENTRY — Bottom Sheet + Turbo Mode
 // ═══════════════════════════════════════════════════════════
 
-// State for the quick point panel
-let QP = { reason: null };
+let BS = {
+  team: null,         // 'A' | 'B'  — which team won
+  scorerId: null,
+  concederId: null,
+  reasonCode: 'WINNER',
+  turboMode: false,
+  turboCombinedId: null  // encoded "scorerId|concederId"
+};
 
-function qpReset(){
-  QP={reason:null};
-  document.querySelectorAll('.qp-team-btn').forEach(b=>b.className='qp-team-btn');
-  document.querySelectorAll('.qp-reason-btn').forEach(b=>b.classList.remove('sel'));
-}
-
-function qpSelectReason(code){
-  QP.reason=(QP.reason===code)?null:code; // tap again to deselect
-  document.querySelectorAll('.qp-reason-btn').forEach(b=>{
-    b.classList.toggle('sel', b.dataset.code===QP.reason);
-  });
-}
-
-// Called when the player labels in the panel need updating (after openLiveModal)
+// ── Labels update (called when live modal opens or match starts) ──
 function qpUpdateLabels(){
   const f=S.fixtures[LM.fixtureIdx]; if(!f) return;
   const pA1=getPlayerById(f.pairA[0]), pA2=getPlayerById(f.pairA[1]);
@@ -1674,47 +1813,165 @@ function qpUpdateLabels(){
   const pB=document.getElementById('qpt-B-players'); if(pB) pB.textContent=pB1.name+' & '+pB2.name;
 }
 
-// Single-tap: team selected → immediately record point
-function qpConfirmTeam(team){
+function qpReset(){
+  // No-op - kept for compatibility
+}
+
+function toggleTurboMode(on){
+  BS.turboMode=on;
+}
+
+// ── Step 1: Open bottom sheet for the team that won ──
+function openPointSheet(team){
   const f=S.fixtures[LM.fixtureIdx]; if(!f) return;
   const ms=f.matchState;
   if(ms.status!=='in_progress'){ toast('Match not started yet!'); return; }
+
+  BS.team=team; BS.scorerId=null; BS.concederId=null; BS.turboCombinedId=null;
+  // Keep BS.reasonCode as WINNER (default) between rallies
+
+  const winPair=(team==='A'?f.pairA:f.pairB).map(id=>getPlayerById(id));
+  const losePair=(team==='A'?f.pairB:f.pairA).map(id=>getPlayerById(id));
+  const teamEmoji=team==='A'?'⚡':'💎';
+  const teamColor=team==='A'?'var(--fire3)':'var(--blue)';
+
+  document.getElementById('bs-title').innerHTML=
+    `<span style="color:${teamColor}">${teamEmoji} Group ${team} scores a point</span>`;
+
+  if(BS.turboMode){
+    // Turbo: show 4 combo buttons
+    document.getElementById('bs-standard-mode').style.display='none';
+    document.getElementById('bs-turbo-mode').style.display='block';
+    const grid=document.getElementById('bs-turbo-grid'); grid.innerHTML='';
+    winPair.forEach(scorer=>{
+      losePair.forEach(conceder=>{
+        const btn=document.createElement('button');
+        btn.className='turbo-btn';
+        const key=scorer.id+'|'+conceder.id;
+        btn.innerHTML=
+          `<div style="color:${teamColor};font-weight:700">${scorer.name}</div>
+           <div style="font-size:.68rem;color:var(--ash);margin:2px 0">scored / conceded</div>
+           <div style="color:#EF5350;font-weight:700">${conceder.name}</div>`;
+        btn.onclick=()=>{
+          document.querySelectorAll('.turbo-btn').forEach(b=>b.classList.remove('sel'));
+          btn.classList.add('sel');
+          BS.scorerId=scorer.id; BS.concederId=conceder.id; BS.turboCombinedId=key;
+          // Auto-confirm if reason is already set
+          bsAutoConfirmIfReady();
+        };
+        grid.appendChild(btn);
+      });
+    });
+  } else {
+    // Standard: scorer then conceder separately
+    document.getElementById('bs-standard-mode').style.display='block';
+    document.getElementById('bs-turbo-mode').style.display='none';
+
+    // Build scorer grid
+    const scorerGrid=document.getElementById('bs-scorer-grid'); scorerGrid.innerHTML='';
+    document.getElementById('bs-scorer-label').textContent='Who scored? ('+( team==='A'?'Group A':'Group B')+')';
+    winPair.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.className='bs-player-btn';
+      btn.textContent=p.name;
+      btn.onclick=()=>{
+        document.querySelectorAll('#bs-scorer-grid .bs-player-btn').forEach(b=>b.className='bs-player-btn');
+        btn.classList.add(team==='A'?'sel-scorer-a':'sel-scorer-b');
+        BS.scorerId=p.id;
+        bsAutoConfirmIfReady();
+      };
+      scorerGrid.appendChild(btn);
+    });
+
+    // Build conceder grid
+    const concederGrid=document.getElementById('bs-conceder-grid'); concederGrid.innerHTML='';
+    document.getElementById('bs-conceder-label').textContent='Who conceded? ('+( team==='A'?'Group B':'Group A')+')';
+    losePair.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.className='bs-player-btn';
+      btn.textContent=p.name;
+      btn.onclick=()=>{
+        document.querySelectorAll('#bs-conceder-grid .bs-player-btn').forEach(b=>b.className='bs-player-btn');
+        btn.classList.add('sel-conceder');
+        BS.concederId=p.id;
+        bsAutoConfirmIfReady();
+      };
+      concederGrid.appendChild(btn);
+    });
+  }
+
+  // Reason grid — keep current selection
+  document.querySelectorAll('#bs-reason-grid .bs-reason-btn').forEach(b=>{
+    b.classList.toggle('sel', b.dataset.code===BS.reasonCode);
+  });
+
+  // Show confirm row only if needed (OTHER notes case handled separately)
+  document.getElementById('bs-confirm-row').style.display='none';
+  document.getElementById('point-sheet').classList.remove('hid');
+}
+
+function closePointSheet(){
+  document.getElementById('point-sheet').classList.add('hid');
+}
+
+function bsSelectReason(code){
+  BS.reasonCode=code;
+  document.querySelectorAll('#bs-reason-grid .bs-reason-btn').forEach(b=>{
+    b.classList.toggle('sel', b.dataset.code===code);
+  });
+  bsAutoConfirmIfReady();
+}
+
+// Auto-confirm: fire when both scorer and conceder are selected
+// (unless no selection made - then user must tap confirm manually)
+function bsAutoConfirmIfReady(){
+  if(BS.scorerId && BS.concederId){
+    // Small delay for visual feedback, then auto-log
+    setTimeout(bsConfirm, 120);
+  }
+}
+
+function bsConfirm(){
+  if(!BS.scorerId || !BS.concederId){ toast('Select scorer & conceder!'); return; }
+  closePointSheet();
+  bsCommitPoint();
+}
+
+function bsCommitPoint(){
+  const f=S.fixtures[LM.fixtureIdx]; if(!f) return;
+  const ms=f.matchState;
   const cs=ms.sets[ms.currentSetIndex];
 
-  // Flash the tapped button briefly for feedback
-  const btn=document.getElementById('qpt-'+(team));
-  if(btn){ btn.className='qp-team-btn '+(team==='A'?'sel-a':'sel-b'); setTimeout(()=>qpReset(),350); }
-
-  // Current server from rotation
   const srvPlayer=getCurrentServer(ms);
   const serverPid=srvPlayer?srvPlayer.id:null;
 
-  const winPair=team==='A'?f.pairA:f.pairB;
-  const losePair=team==='A'?f.pairB:f.pairA;
-
   const event={
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2,5),
     ts: Date.now(),
     setIndex: ms.currentSetIndex,
-    winningTeam: team,
-    scorerPlayerId: winPair[0],
-    concederPlayerId: losePair[0],
-    reasonCode: QP.reason||'other',
+    winningTeam: BS.team,
+    scorerPlayerId: BS.scorerId,
+    concederPlayerId: BS.concederId,
+    reasonCode: BS.reasonCode||'WINNER',
     serverPlayerId: serverPid,
-    notes: ''
+    notes: (document.getElementById('bs-notes')||{}).value||''
   };
 
   cs.events.push(event);
-  if(team==='A') cs.pointsA++;
+  if(BS.team==='A') cs.pointsA++;
   else cs.pointsB++;
 
-  // Advance server every rally (round-robin)
+  // Advance server
   advanceServer(ms);
 
-  // Reset reason selection for next rally
-  QP.reason=null;
-  document.querySelectorAll('.qp-reason-btn').forEach(b=>b.classList.remove('sel'));
+  // Reset notes
+  const notesEl=document.getElementById('bs-notes');
+  if(notesEl) notesEl.value='';
 
-  // Check set completion
+  // Reset BS (keep reasonCode as WINNER for next rally)
+  BS.scorerId=null; BS.concederId=null; BS.turboCombinedId=null; BS.team=null;
+  BS.reasonCode='WINNER';
+
   const setEnded=checkSetEnd(ms, ms.currentSetIndex);
 
   if(!setEnded){
@@ -1749,10 +2006,43 @@ function qpConfirmTeam(team){
   }
 }
 
-// Legacy qpConfirm alias (kept for safety)
-function qpConfirm(){ if(QP.team) qpConfirmTeam(QP.team); }
-function qpSelectTeam(team){ qpConfirmTeam(team); }
-function qpCancel(){ qpReset(); }
+// ── Server Override ──
+function openServerOverride(){
+  const f=S.fixtures[LM.fixtureIdx]; if(!f) return;
+  const ms=f.matchState;
+  if(ms.status!=='in_progress') return;
+  const grid=document.getElementById('srv-override-grid'); grid.innerHTML='';
+  [...f.pairA,...f.pairB].forEach(pid=>{
+    const p=getPlayerById(pid);
+    const btn=document.createElement('button');
+    btn.className='bs-player-btn'+(ms.serverPlayerId===pid?' sel-scorer-a':'');
+    btn.textContent=p.name+' ('+p.group+')';
+    btn.onclick=()=>{
+      ms.serverPlayerId=pid;
+      // Sync rotation to this player
+      if(ms.serveRotation){
+        const idx=ms.serveRotation.indexOf(pid);
+        if(idx>=0) ms.serveRotationIdx=idx;
+      }
+      saveLocal(); saveFB();
+      updateScoreboard();
+      closeServerOverride();
+      toast('Server changed to '+p.name);
+    };
+    grid.appendChild(btn);
+  });
+  document.getElementById('srv-override-modal').classList.remove('hid');
+}
+function closeServerOverride(){
+  document.getElementById('srv-override-modal').classList.add('hid');
+}
+
+// Legacy stubs
+function qpConfirmTeam(team){ openPointSheet(team); }
+function qpConfirm(){ bsConfirm(); }
+function qpSelectTeam(team){ openPointSheet(team); }
+function qpCancel(){ closePointSheet(); }
+function qpSelectReason(code){ bsSelectReason(code); }
 
 
 // ── confirmPoint removed (replaced by qpConfirm) ──
@@ -1844,6 +2134,8 @@ function undoLastPoint(){
     }
   }
 
+  // Close bottom sheet if open
+  closePointSheet();
   saveLocal(); saveFB();
   updateScoreboard(); updateTimeline();
   toast('Point undone ↩');
@@ -1863,20 +2155,34 @@ function updateTimeline(){
     el.innerHTML='<div style="color:var(--stone3);font-size:.74rem;padding:5px 0">No points yet</div>';
     return;
   }
-  // Show last 8 events most-recent-first
-  const recent=allEvents.slice(-8).reverse();
+  const recent=allEvents.slice(-10).reverse();
+  const total=allEvents.length;
   el.innerHTML=recent.map((ev,i)=>{
+    const scorer=ev.scorerPlayerId?getPlayerById(ev.scorerPlayerId):null;
+    const conceder=ev.concederPlayerId?getPlayerById(ev.concederPlayerId):null;
     const server=ev.serverPlayerId?getPlayerById(ev.serverPlayerId):null;
-    const reason=REASONS.find(r=>r.code===ev.reasonCode);
     const tcl=ev.winningTeam==='A'?'tl-a':'tl-b';
-    const reasonLabel=reason?(reason.icon+' '+reason.label):'—';
-    const srvLabel=server?(' · 🏸 '+server.name):' ';
-    const totalPts=allEvents.length;
-    const evNum=totalPts-(recent.length-1-i)+recent.length-recent.length+(recent.length-i);
+    // Reason icon map
+    const rIconMap={WINNER:'🏸',NET:'🔵',OUT:'↗',UNFORCED:'😬',FORCED:'💥',SERVICE:'⚡',OTHER:'📝',
+                    winner:'🏸',net:'🔵',out:'↗',unforced:'😬',forced:'💥',service:'⚡',other:'📝'};
+    const rLabelMap={WINNER:'Winner',NET:'Net',OUT:'Out',UNFORCED:'Unforced',FORCED:'Forced',
+                     SERVICE:'Serve Fault',OTHER:'Other',
+                     winner:'Winner',net:'Net',out:'Out',unforced:'Unforced',forced:'Forced',
+                     service:'Serve Fault',other:'Other'};
+    const rc=ev.reasonCode||'WINNER';
+    const reasonTxt=(rIconMap[rc]||'?')+' '+(rLabelMap[rc]||rc);
+    const scorerTxt=scorer?scorer.name:'?';
+    const concederTxt=conceder?conceder.name:'?';
+    const srvTxt=server?(' 🏸 '+server.name):'';
     return `<div class="tl-event">
-      <span class="tl-num">${totalPts-i}</span>
+      <span class="tl-num">${total-i}</span>
       <div class="tl-body">
-        <strong class="${tcl}">Group ${ev.winningTeam}</strong> · ${reasonLabel}${srvLabel}
+        <strong class="${tcl}">Grp ${ev.winningTeam}</strong> ·
+        ${reasonTxt} ·
+        <span style="color:var(--green)">${scorerTxt}</span>↑
+        <span style="color:#EF5350"> ${concederTxt}</span>↓
+        ${srvTxt?`<span style="color:var(--gold);font-size:.7rem">${srvTxt}</span>`:''}
+        ${ev.notes?`<em style="color:var(--stone3);font-size:.7rem"> ${ev.notes}</em>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1987,8 +2293,11 @@ function computePlayerStats(){
       s.events.forEach(ev=>{
         if(stats[ev.scorerPlayerId]) stats[ev.scorerPlayerId].pointsScored++;
         if(stats[ev.concederPlayerId]) stats[ev.concederPlayerId].pointsConceded++;
-        const rc=ev.reasonCode||'other';
+        const rc=(ev.reasonCode||'OTHER').toUpperCase();
         if(stats[ev.concederPlayerId]) stats[ev.concederPlayerId].reasonCounts[rc]=(stats[ev.concederPlayerId].reasonCounts[rc]||0)+1;
+        // Also track scored reason
+        if(stats[ev.scorerPlayerId]) stats[ev.scorerPlayerId].scoredReasons=stats[ev.scorerPlayerId].scoredReasons||{};
+        if(stats[ev.scorerPlayerId]) stats[ev.scorerPlayerId].scoredReasons[rc]=(stats[ev.scorerPlayerId].scoredReasons[rc]||0)+1;
       });
     });
   });
@@ -2077,6 +2386,8 @@ function refreshStats(){
   </div>`;
 
   body.innerHTML=html;
+  // Re-render organizer view if it's visible
+  if(ORG_VIEW_ON) renderOrgView();
 }
 
 function showPlayerDetail(pid){
@@ -2132,6 +2443,79 @@ function showPlayerDetail(pid){
   document.getElementById('player-modal').classList.remove('hid');
 }
 function closePlayerModal(){ document.getElementById('player-modal').classList.add('hid'); }
+
+// ─── Organizer view toggle ───
+let ORG_VIEW_ON = false;
+function toggleOrgView(){
+  ORG_VIEW_ON = !ORG_VIEW_ON;
+  const orgDiv = document.getElementById('org-view');
+  const lockBtn = document.querySelector('.organizer-lock');
+  if(orgDiv){ orgDiv.classList.toggle('visible', ORG_VIEW_ON); }
+  if(lockBtn){ lockBtn.textContent = ORG_VIEW_ON ? '🔓 Organizer' : '🔒 Organizer'; }
+  if(ORG_VIEW_ON) renderOrgView();
+}
+
+function renderOrgView(){
+  const body = document.getElementById('org-body');
+  if(!body) return;
+  const pStats = computePlayerStats();
+  if(pStats.every(p=>p.matchesPlayed===0)){
+    body.innerHTML='<div class="ibox">No match data yet.</div>'; return;
+  }
+
+  // Sort by most conceded
+  const byConc = [...pStats].sort((a,b)=>b.pointsConceded-a.pointsConceded);
+
+  const rNames={WINNER:'Winner',NET:'Net',OUT:'Out',UNFORCED:'Unforced',FORCED:'Forced',
+                SERVICE:'Serve Fault',OTHER:'Other',
+                winner:'Winner',net:'Net',out:'Out',unforced:'Unforced',forced:'Forced',
+                service:'Serve Fault',other:'Other'};
+
+  let html = `<div class="sh" style="margin-top:4px"><h2 style="font-size:1rem">Conceded Leaderboard</h2></div>
+  <div class="stbl-wrap"><table class="stbl">
+  <thead><tr><th>#</th><th>Player</th><th>Grp</th><th>Conceded</th><th>Per Match</th><th>Scored</th><th>Diff</th></tr></thead><tbody>`;
+
+  byConc.forEach((p,i)=>{
+    const perMatch = p.matchesPlayed>0?(p.pointsConceded/p.matchesPlayed).toFixed(1):'—';
+    const diff = p.pointsScored-p.pointsConceded;
+    const diffCl = diff>=0?'dp':'dn';
+    const gt = p.group==='A'?'<span class="badge">A</span>':'<span class="badge badge-b">B</span>';
+    html+=`<tr>
+      <td>${i+1}</td>
+      <td style="font-weight:700;color:var(--cream)">${p.name}</td>
+      <td>${gt}</td>
+      <td style="color:#EF5350;font-family:'Share Tech Mono',monospace;font-weight:700">${p.pointsConceded}</td>
+      <td style="color:var(--ash);font-family:'Share Tech Mono',monospace">${perMatch}</td>
+      <td style="color:var(--fire3);font-family:'Share Tech Mono',monospace">${p.pointsScored}</td>
+      <td class="${diffCl}">${diff>=0?'+':''}${diff}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>`;
+
+  // Error breakdown section
+  html+=`<div class="sh" style="margin-top:16px"><h2 style="font-size:1rem">Error Type Breakdown (Conceded)</h2></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">`;
+
+  byConc.slice(0,8).forEach(p=>{
+    const reasons = Object.entries(p.reasonCounts||{}).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    if(!reasons.length) return;
+    const maxVal = Math.max(...reasons.map(r=>r[1]),1);
+    html+=`<div class="card"><div style="font-weight:700;color:var(--cream);margin-bottom:8px">${p.name} <span class="badge badge-${p.group==='A'?'':'b'}">${p.group}</span></div>`;
+    reasons.forEach(([code,count])=>{
+      const pct=Math.round(count/maxVal*100);
+      html+=`<div class="err-bar">
+        <span class="err-bar-label">${rNames[code]||code}</span>
+        <div class="err-bar-fill" style="max-width:${pct}%;min-width:4px;"></div>
+        <span class="err-bar-val">${count}</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+
+  body.innerHTML = html;
+}
 
 // ═══════════════════════════════════════════════════════════
 // ⑭ HOME STATUS
@@ -2199,6 +2583,8 @@ async function savePasscode(){
 document.getElementById('sess-modal').addEventListener('click',function(e){if(e.target===this)closeSessionModal();});
 document.getElementById('live-modal').addEventListener('click',function(e){if(e.target===this)closeLiveModal();});
 document.getElementById('point-modal').addEventListener('click',function(e){if(e.target===this)closePointModal();});
+document.getElementById('point-sheet').addEventListener('click',function(e){if(e.target===this)closePointSheet();});
+document.getElementById('srv-override-modal').addEventListener('click',function(e){if(e.target===this)closeServerOverride();});
 document.getElementById('player-modal').addEventListener('click',function(e){if(e.target===this)closePlayerModal();});
 document.getElementById('migration-modal').addEventListener('click',function(e){if(e.target===this)closeMigrationModal();});
 
