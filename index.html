@@ -78,6 +78,10 @@ header{background:linear-gradient(180deg,#0A0400,#1E0C02);border-bottom:2px soli
   cursor:pointer;font-family:'Rajdhani',sans-serif;transition:all .2s;}
 .sess-pill:hover{background:rgba(255,107,0,.25);}
 .sess-pill strong{color:var(--fire3);}
+.new-sess-btn{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);border-radius:20px;
+  padding:4px 11px;font-size:.68rem;letter-spacing:1px;color:var(--green);white-space:nowrap;
+  cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;transition:all .2s;}
+.new-sess-btn:hover{background:rgba(74,222,128,.25);}
 
 /* ─────────── NAV ─────────── */
 .nav{background:rgba(10,4,0,.98);border-bottom:1px solid rgba(255,69,0,.15);
@@ -450,6 +454,7 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
   <div class="hdr-right">
     <div class="sync-dot" id="sync-dot" title="Sync status"></div>
     <button class="sess-pill" onclick="openSessionModal()">🔗 <strong id="sid-display">—</strong></button>
+    <button class="new-sess-btn" onclick="startNewSession()" title="Start a brand-new tournament session">＋ New</button>
   </div>
 </div>
 </header>
@@ -1163,6 +1168,20 @@ function newSession(){
   S = { sessionId:SID, created:new Date().toISOString(), passcodeHash:'',
         groupA:[], groupB:[], fixtures:[] };
   saveLocal();
+}
+
+function startNewSession(){
+  if(!confirm('Start a brand-new session? All current tournament data will be cleared on this device.\n\nYour current session ID: '+SID)) return;
+  if(DB_UNSUBSCRIBE){ DB_UNSUBSCRIBE(); DB_UNSUBSCRIBE=null; }
+  newSession();
+  saveFB();
+  subscribeSession(SID);
+  updateSidUI();
+  buildRows('A'); buildRows('B');
+  renderFixturesUI();
+  updateHomeStatus();
+  goTo('home');
+  toast('New session started: '+SID);
 }
 
 function updateSidUI(){
