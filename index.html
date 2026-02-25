@@ -493,6 +493,66 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .err-bar-label{font-size:.72rem;color:var(--ash);min-width:70px;}
 .err-bar-val{font-size:.72rem;color:#EF5350;font-family:'Share Tech Mono',monospace;min-width:28px;text-align:right;}
 
+
+/* ─────────── ACHIEVEMENTS ─────────── */
+.achv-shelf{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.achv{display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:10px 12px;border-radius:9px;min-width:100px;text-align:center;
+  border:1.5px solid rgba(255,215,0,.25);background:rgba(255,215,0,.05);
+  transition:transform .18s;}
+.achv:hover{transform:translateY(-2px);}
+.achv.dim{opacity:.25;filter:grayscale(1);}
+.achv-icon{font-size:1.6rem;}
+.achv-name{font-size:.65rem;font-weight:700;letter-spacing:1px;color:var(--gold);text-transform:uppercase;}
+.achv-holder{font-size:.72rem;color:var(--fire3);font-weight:600;}
+.achv-desc{font-size:.6rem;color:var(--stone3);margin-top:1px;}
+
+/* ─────────── STREAK / CLUTCH PILLS ─────────── */
+.stat-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+  border-radius:10px;font-size:.68rem;font-weight:700;}
+.sp-clutch{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.2);}
+.sp-streak{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.2);}
+
+/* ─────────── MATCH SUMMARY OVERLAY ─────────── */
+.msumm-overlay{position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.9);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  animation:rise .3s ease;}
+.msumm-overlay.hid{display:none;}
+.msumm-box{background:linear-gradient(145deg,#200a00,#0A0400);
+  border:2px solid var(--fire1);border-radius:12px;width:100%;max-width:440px;
+  padding:22px;box-shadow:0 0 60px rgba(255,69,0,.4);}
+.msumm-title{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--fire3);
+  letter-spacing:2px;margin-bottom:14px;text-align:center;}
+.msumm-row{display:flex;justify-content:space-between;padding:6px 0;
+  border-bottom:1px solid var(--stone2);font-size:.82rem;}
+.msumm-row:last-child{border-bottom:none;}
+.msumm-row .ml{color:var(--ash);}
+.msumm-row .mr{color:var(--cream);font-weight:700;font-family:'Share Tech Mono',monospace;}
+
+/* ─────────── HISTORY TAB ─────────── */
+.hist-item{background:rgba(20,10,2,.88);border:1px solid var(--stone2);
+  border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;
+  justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.hist-item h4{font-family:'Share Tech Mono',monospace;font-size:.82rem;color:var(--fire3);}
+.hist-item p{font-size:.72rem;color:var(--ash);margin-top:2px;}
+.hist-acts{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* ─────────── GROUP NAME INPUTS ─────────── */
+.grpname-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.grpname-inp{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--stone2);
+  border-radius:5px;color:var(--cream);font-family:'Rajdhani',sans-serif;
+  font-size:.92rem;padding:7px 10px;outline:none;transition:border-color .2s;}
+.grpname-inp:focus{border-color:var(--fire1);}
+
+/* ─────────── SOUND TOGGLE ─────────── */
+.sound-row{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--ash);
+  cursor:pointer;padding:6px 0;border-bottom:1px solid var(--stone2);margin-bottom:6px;}
+.sound-row input{accent-color:var(--fire1);}
+
+/* ─────────── SCORE BADGE IN SCOREBOARD ─────────── */
+.sb-clutch-flag{font-size:.68rem;color:var(--gold);text-align:center;margin-top:2px;
+  font-weight:700;letter-spacing:1px;min-height:16px;}
+
 </style>
 </head>
 <body>
@@ -540,6 +600,7 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
   <button class="ntab"        id="nt-standings"onclick="goTo('standings')">🏅 Standings</button>
   <button class="ntab"        id="nt-stats"    onclick="goTo('stats')">📊 Stats</button>
   <button class="ntab"        id="nt-export"   onclick="goTo('export')">📄 Export</button>
+  <button class="ntab"        id="nt-history"  onclick="goTo('history')">🕐 History</button>
 </div>
 
 <main>
@@ -555,6 +616,19 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
     <div class="rh-det" style="margin-top:6px;font-size:.76rem;color:var(--stone3);font-style:italic;">"Two groups. One court of fire. Every point counts."</div>
   </div>
   <div id="home-status" class="ibox"><strong>Getting started:</strong> Enter players in Group A and Group B, then generate fixtures.</div>
+  <!-- Group name customization -->
+  <div class="card" style="margin-top:14px;margin-bottom:2px">
+    <div style="font-family:'Cinzel Decorative',serif;font-size:.78rem;color:var(--fire3);letter-spacing:2px;margin-bottom:10px">⚙️ TEAM NAMES</div>
+    <div class="grpname-row">
+      <span style="font-size:.75rem;color:var(--ash);width:56px">Team 1</span>
+      <input class="grpname-inp" id="grpname-A" placeholder="Group A" oninput="updateGroupName('A',this.value)" value="Group A"/>
+    </div>
+    <div class="grpname-row">
+      <span style="font-size:.75rem;color:var(--ash);width:56px">Team 2</span>
+      <input class="grpname-inp" id="grpname-B" placeholder="Group B" oninput="updateGroupName('B',this.value)" value="Group B"/>
+    </div>
+    <div style="font-size:.68rem;color:var(--stone3);margin-top:4px">Names appear everywhere: fixtures, scoring, standings, PDF.</div>
+  </div>
   <div class="brow" style="margin-top:14px;">
     <button class="btn btn-fire" onclick="goTo('groupa')">⚡ Enter Group A</button>
     <button class="btn btn-gold" onclick="goTo('fixtures')">🏸 View Fixtures</button>
@@ -573,7 +647,7 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
     <div class="rh-title">Tournament Rules</div>
     <div class="rh-sub">Official Format — Shuttle Mayhem 2026</div>
     <div class="rh-div"></div>
-    <div class="rh-det"><strong>Group A</strong> vs <strong>Group B</strong> · 5 Rounds · Sets to <strong>21</strong> (win by 2, max 31)</div>
+    <div class="rh-det" id="rules-grp-line"><strong>Group A</strong> vs <strong>Group B</strong> · 5 Rounds · Sets to <strong>21</strong> (win by 2, max 31)</div>
   </div>
   <div class="rgrid">
     <div class="rcard">
@@ -662,9 +736,9 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 
 <!-- ══════ GROUP A ══════ -->
 <div class="page" id="pg-groupa">
-  <div class="sh"><h2>Group A — Players</h2><p>Rank 1 = strongest player. Names are locked after fixtures are generated.</p></div>
+  <div class="sh"><h2 id="grpa-page-title">Group A — Players</h2><p>Rank 1 = strongest player. Names are locked after fixtures are generated.</p></div>
   <div class="grp-box a" id="grpa-box">
-    <div class="grp-lbl">⚡ GROUP A</div>
+    <div class="grp-lbl" id="grpa-lbl">⚡ GROUP A</div>
     <div id="rowsA"></div>
   </div>
   <div class="brow">
@@ -675,9 +749,9 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 
 <!-- ══════ GROUP B ══════ -->
 <div class="page" id="pg-groupb">
-  <div class="sh"><h2>Group B — Players</h2><p>Rank 1 = strongest. Matched against Group A by rank.</p></div>
+  <div class="sh"><h2 id="grpb-page-title">Group B — Players</h2><p>Rank 1 = strongest. Matched against Group A by rank.</p></div>
   <div class="grp-box b" id="grpb-box">
-    <div class="grp-lbl" style="color:var(--blue)">💎 GROUP B</div>
+    <div class="grp-lbl" style="color:var(--blue)" id="grpb-lbl">💎 GROUP B</div>
     <div id="rowsB"></div>
   </div>
   <div class="brow">
@@ -782,6 +856,19 @@ service cloud.firestore {
   </div>
 </div>
 
+<!-- ══════ HISTORY ══════ -->
+<div class="page" id="pg-history">
+  <div class="sh"><h2>Session History</h2><p>Past tournaments · Export, archive, or import sessions</p></div>
+  <div class="brow" style="margin-bottom:14px;">
+    <button class="btn btn-fire btn-sm" onclick="histExportCurrentJSON()">📤 Export Current Session (JSON)</button>
+    <button class="btn btn-ghost btn-sm" onclick="histImport()">📥 Import Session</button>
+  </div>
+  <div id="hist-list">
+    <div class="ibox">Loading session list…</div>
+  </div>
+  <input type="file" id="hist-file-inp" accept=".json" style="display:none" onchange="histFileLoad(this)"/>
+</div>
+
 </main>
 
 <!-- ══════════════════════════════════════════════════
@@ -866,6 +953,7 @@ service cloud.firestore {
       <h3 id="lm-title">Live Scoring</h3>
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="btn btn-ghost btn-xs" onclick="undoLastPoint()">↩ Undo</button>
+        <button class="btn btn-ghost btn-xs" onclick="redoLastPoint()">↪ Redo</button>
         <button class="modal-close" onclick="closeLiveModal()">✕</button>
       </div>
     </div>
@@ -901,11 +989,18 @@ service cloud.firestore {
       <!-- Active scoring section -->
       <div id="lm-scoring-section" style="display:none">
 
-        <!-- Turbo mode toggle -->
-        <label class="turbo-toggle" style="margin-bottom:8px;">
-          <input type="checkbox" id="turbo-toggle" onchange="toggleTurboMode(this.checked)">
-          <span>⚡ <strong>Turbo Mode</strong> — combo buttons (scorer+conceder in one tap)</span>
-        </label>
+        <!-- Turbo mode + sound toggles -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+          <label class="turbo-toggle">
+            <input type="checkbox" id="turbo-toggle" onchange="toggleTurboMode(this.checked)">
+            <span>⚡ <strong>Turbo</strong></span>
+          </label>
+          <label class="sound-row" style="border:none;margin:0;padding:0">
+            <input type="checkbox" id="sound-toggle" onchange="BS.soundOn=this.checked">
+            <span>🔔 Sound</span>
+          </label>
+        </div>
+        <div class="sb-clutch-flag" id="clutch-flag"></div>
 
         <!-- Step 1: Point to which team (two big buttons) -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
@@ -997,6 +1092,19 @@ service cloud.firestore {
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closePointModal()">Cancel</button>
       <button class="btn btn-fire" onclick="confirmPoint()">Confirm Point ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MATCH SUMMARY OVERLAY
+══════════════════════════════════════════════════ -->
+<div class="msumm-overlay hid" id="match-summary">
+  <div class="msumm-box">
+    <div class="msumm-title" id="msumm-title">🏆 Match Complete!</div>
+    <div id="msumm-body"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:center;">
+      <button class="btn btn-fire btn-sm" onclick="closeMatchSummary()">Continue →</button>
     </div>
   </div>
 </div>
@@ -1158,15 +1266,21 @@ let S = {
   groupA: [], // [{rank:1..8, name:'', id:'A1'}]
   groupB: [],
   fixtures: [], // see buildFixtures()
-  // fixtures[i].matchState = MatchState object
+  groupNameA: 'Group A',  // custom display name
+  groupNameB: 'Group B',
 };
+
+// Helper: display name for group
+function gName(g){ return g==='A'?(S.groupNameA||'Group A'):(S.groupNameB||'Group B'); }
+function gIcon(g){ return g==='A'?'⚡':'💎'; }
 
 // Live scoring context
 let LM = {
   fixtureIdx: -1,
   serverPlayerId: null,
-  serverMode: 'manual', // 'manual' | 'auto'
-  showTimeline: false
+  serverMode: 'manual',
+  showTimeline: false,
+  redoStack: []  // for redo after undo
 };
 
 // Point popup context
@@ -1184,6 +1298,8 @@ function saveLocal(){
   try{
     localStorage.setItem('sm26v2_sid', S.sessionId);
     localStorage.setItem(lsKey(S.sessionId), JSON.stringify(S));
+    // Keep history index in sync
+    if(typeof histAddCurrentToIndex==='function') histAddCurrentToIndex();
   }catch(e){ console.warn('localStorage save failed',e); }
 }
 
@@ -1319,8 +1435,33 @@ async function init(){
 function newSession(){
   SID = 'SM'+Date.now().toString(36).toUpperCase().slice(-6);
   S = { sessionId:SID, created:new Date().toISOString(), passcodeHash:'',
-        groupA:[], groupB:[], fixtures:[] };
+        groupA:[], groupB:[], fixtures:[],
+        groupNameA:'Group A', groupNameB:'Group B' };
   saveLocal();
+}
+
+function updateGroupName(g, val){
+  if(g==='A') S.groupNameA = val||'Group A';
+  else S.groupNameB = val||'Group B';
+  saveLocal(); saveFB();
+  // Propagate name everywhere
+  const f=S.fixtures[LM.fixtureIdx]; if(f){ updateScoreboard(); qpUpdateLabels(); }
+  if(document.getElementById('pg-fixtures').classList.contains('active')) renderFixturesUI();
+  if(document.getElementById('pg-standings').classList.contains('active')) refreshStandings();
+  // Update group page labels live
+  const nA=S.groupNameA||'Group A', nB=S.groupNameB||'Group B';
+  const grpaLbl=document.getElementById('grpa-lbl'); if(grpaLbl) grpaLbl.textContent='⚡ '+nA.toUpperCase();
+  const grpbLbl=document.getElementById('grpb-lbl'); if(grpbLbl) grpbLbl.textContent='💎 '+nB.toUpperCase();
+  const grpaTitle=document.getElementById('grpa-page-title'); if(grpaTitle) grpaTitle.textContent=nA+' — Players';
+  const grpbTitle=document.getElementById('grpb-page-title'); if(grpbTitle) grpbTitle.textContent=nB+' — Players';
+  // Update nav tabs
+  const ntA=document.getElementById('nt-groupa'); if(ntA) ntA.textContent='⚡ '+nA;
+  const ntB=document.getElementById('nt-groupb'); if(ntB) ntB.textContent='💎 '+nB;
+  // Update home hero subtitle
+  const heroSub=document.querySelector('.rh-sub');
+  if(heroSub) heroSub.textContent='🏸 '+nA+' vs '+nB+' · 5 Rounds · 3 Courts 🏸';
+  const rulesLine=document.getElementById('rules-grp-line');
+  if(rulesLine) rulesLine.innerHTML='<strong>'+nA+'</strong> vs <strong>'+nB+'</strong> · 5 Rounds · Sets to <strong>21</strong> (win by 2, max 31)';
 }
 
 function startNewSession(){
@@ -1356,6 +1497,18 @@ function restoreUI(){
       if(el) el.value=p.name;
     });
   });
+  // Restore group names
+  const gnA=document.getElementById('grpname-A');
+  const gnB=document.getElementById('grpname-B');
+  const nA=S.groupNameA||'Group A';
+  const nB=S.groupNameB||'Group B';
+  if(gnA) gnA.value=nA;
+  if(gnB) gnB.value=nB;
+  // Update group page labels
+  const grpaLbl=document.getElementById('grpa-lbl'); if(grpaLbl) grpaLbl.textContent='⚡ '+nA.toUpperCase();
+  const grpbLbl=document.getElementById('grpb-lbl'); if(grpbLbl) grpbLbl.textContent='💎 '+nB.toUpperCase();
+  const grpaTitle=document.getElementById('grpa-page-title'); if(grpaTitle) grpaTitle.textContent=nA+' — Players';
+  const grpbTitle=document.getElementById('grpb-page-title'); if(grpbTitle) grpbTitle.textContent=nB+' — Players';
   if(S.fixtures&&S.fixtures.length) renderFixturesUI();
   updateHomeStatus();
 }
@@ -1380,6 +1533,7 @@ function goTo(id){
   window.scrollTo(0,0);
   if(id==='standings') refreshStandings();
   if(id==='stats'){ refreshStats(); if(typeof ORG_VIEW_ON!=='undefined'&&ORG_VIEW_ON) renderOrgView(); }
+  if(id==='history') histRefreshList();
 }
 function markDone(id){ const t=document.getElementById('nt-'+id); if(t) t.classList.add('done'); }
 function setSyncDot(state){
@@ -1561,8 +1715,8 @@ function fixtureCardHTML(f){
       </div>`;
     }).join('');
     const winner=ms.winner==='A'?
-      `<span class="wpill">⚡ Group A Win</span>`:
-      `<span class="wpill" style="color:var(--blue);border-color:rgba(96,165,250,.3)">💎 Group B Win</span>`;
+      `<span class="wpill">${gIcon('A')} ${gName('A')} Win</span>`:
+      `<span class="wpill" style="color:var(--blue);border-color:rgba(96,165,250,.3)">${gIcon('B')} ${gName('B')} Win</span>`;
     const bonus=ms.winner==='A'&&ms.bonusA>0?`<span class="bpill">+${ms.bonusA} bonus</span>`:
                 ms.winner==='B'&&ms.bonusB>0?`<span class="bpill">+${ms.bonusB} bonus</span>`:'';
     const pts=ms.winner==='A'?`<span class="match-pts">A: <span>${ms.matchPointsA}pts</span></span>`:
@@ -1609,13 +1763,13 @@ function fixtureCardHTML(f){
     </div>
     <div class="fbody">
       <div class="tside">
-        <span class="tgrp-tag ta">Group A</span>
+        <span class="tgrp-tag ta">${gName('A')}</span>
         <div class="pnames">${pA1.name}<br>${pA2.name}</div>
         <div class="pranks">R${pA1.rank} + R${pA2.rank}</div>
       </div>
       <div class="vsbox"><div class="vstxt ${f.matchType==='BO3'?'bo3':''}">VS</div></div>
       <div class="tside r">
-        <span class="tgrp-tag tb">Group B</span>
+        <span class="tgrp-tag tb">${gName('B')}</span>
         <div class="pnames">${pB1.name}<br>${pB2.name}</div>
         <div class="pranks">R${pB1.rank} + R${pB2.rank}</div>
       </div>
@@ -1665,8 +1819,8 @@ function openLiveModal(fid){
   const pB1=getPlayerById(f.pairB[0]), pB2=getPlayerById(f.pairB[1]);
 
   document.getElementById('lm-title').textContent=`R${f.round} · ${pA1.name}/${pA2.name} vs ${pB1.name}/${pB2.name}`;
-  document.getElementById('sb-teamA').textContent=`⚡ ${pA1.name} / ${pA2.name}`;
-  document.getElementById('sb-teamB').textContent=`💎 ${pB1.name} / ${pB2.name}`;
+  document.getElementById('sb-teamA').textContent=`${gIcon('A')} ${gName('A')}: ${pA1.name} / ${pA2.name}`;
+  document.getElementById('sb-teamB').textContent=`${gIcon('B')} ${gName('B')}: ${pB1.name} / ${pB2.name}`;
 
   updateScoreboard();
 
@@ -1750,6 +1904,10 @@ function updateScoreboard(){
   document.getElementById('sb-scoreA').textContent=cs.pointsA;
   document.getElementById('sb-scoreB').textContent=cs.pointsB;
 
+  // Update team name labels in scoring buttons
+  const lA=document.getElementById('qpt-A-label'); if(lA) lA.textContent=gName('A');
+  const lB=document.getElementById('qpt-B-label'); if(lB) lB.textContent=gName('B');
+
   // Sets indicators
   const setsEl=document.getElementById('sb-sets'); setsEl.innerHTML='';
   ms.sets.forEach((s,i)=>{
@@ -1776,6 +1934,14 @@ function updateScoreboard(){
   else if(hi>=SET_WIN) statusText='Deuce zone — win by 2 (max 31)';
   document.getElementById('sb-gp').textContent=statusText;
   document.getElementById('sb-gp').style.display=statusText?'block':'none';
+
+  // Clutch flag
+  const clutchEl=document.getElementById('clutch-flag');
+  if(clutchEl){
+    if(a>=20&&b>=20) clutchEl.textContent='⚡ CLUTCH ZONE — both at 20+!';
+    else if(a>=18&&b>=18) clutchEl.textContent='⚠ Pressure zone — both at 18+';
+    else clutchEl.textContent='';
+  }
 }
 
 function getCurrentServer(ms){
@@ -1794,12 +1960,13 @@ function advanceServer(ms){
 // ═══════════════════════════════════════════════════════════
 
 let BS = {
-  team: null,         // 'A' | 'B'  — which team won
+  team: null,
   scorerId: null,
   concederId: null,
   reasonCode: 'WINNER',
   turboMode: false,
-  turboCombinedId: null  // encoded "scorerId|concederId"
+  turboCombinedId: null,
+  soundOn: false   // beep/vibrate on point log
 };
 
 // ── Labels update (called when live modal opens or match starts) ──
@@ -1807,8 +1974,8 @@ function qpUpdateLabels(){
   const f=S.fixtures[LM.fixtureIdx]; if(!f) return;
   const pA1=getPlayerById(f.pairA[0]), pA2=getPlayerById(f.pairA[1]);
   const pB1=getPlayerById(f.pairB[0]), pB2=getPlayerById(f.pairB[1]);
-  const lA=document.getElementById('qpt-A-label'); if(lA) lA.textContent='Group A';
-  const lB=document.getElementById('qpt-B-label'); if(lB) lB.textContent='Group B';
+  const lA=document.getElementById('qpt-A-label'); if(lA) lA.textContent=gName('A');
+  const lB=document.getElementById('qpt-B-label'); if(lB) lB.textContent=gName('B');
   const pA=document.getElementById('qpt-A-players'); if(pA) pA.textContent=pA1.name+' & '+pA2.name;
   const pB=document.getElementById('qpt-B-players'); if(pB) pB.textContent=pB1.name+' & '+pB2.name;
 }
@@ -1836,7 +2003,7 @@ function openPointSheet(team){
   const teamColor=team==='A'?'var(--fire3)':'var(--blue)';
 
   document.getElementById('bs-title').innerHTML=
-    `<span style="color:${teamColor}">${teamEmoji} Group ${team} scores a point</span>`;
+    `<span style="color:${teamColor}">${teamEmoji} ${gName(team)} scores a point</span>`;
 
   if(BS.turboMode){
     // Turbo: show 4 combo buttons
@@ -1869,7 +2036,7 @@ function openPointSheet(team){
 
     // Build scorer grid
     const scorerGrid=document.getElementById('bs-scorer-grid'); scorerGrid.innerHTML='';
-    document.getElementById('bs-scorer-label').textContent='Who scored? ('+( team==='A'?'Group A':'Group B')+')';
+    document.getElementById('bs-scorer-label').textContent='Who scored? ('+gName(team)+')';
     winPair.forEach(p=>{
       const btn=document.createElement('button');
       btn.className='bs-player-btn';
@@ -1885,7 +2052,7 @@ function openPointSheet(team){
 
     // Build conceder grid
     const concederGrid=document.getElementById('bs-conceder-grid'); concederGrid.innerHTML='';
-    document.getElementById('bs-conceder-label').textContent='Who conceded? ('+( team==='A'?'Group B':'Group A')+')';
+    document.getElementById('bs-conceder-label').textContent='Who conceded? ('+gName(team==='A'?'B':'A')+')';
     losePair.forEach(p=>{
       const btn=document.createElement('button');
       btn.className='bs-player-btn';
@@ -1961,8 +2128,24 @@ function bsCommitPoint(){
   if(BS.team==='A') cs.pointsA++;
   else cs.pointsB++;
 
+  // Sound/vibration feedback
+  if(BS.soundOn){
+    try{ if(navigator.vibrate) navigator.vibrate(40); } catch(e){}
+    try{
+      const ctx=new (window.AudioContext||window.webkitAudioContext)();
+      const o=ctx.createOscillator(); const g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sine'; o.frequency.value=880;
+      g.gain.setValueAtTime(.3,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.15);
+      o.start(); o.stop(ctx.currentTime+.15);
+    } catch(e){}
+  }
+
   // Advance server
   advanceServer(ms);
+  // New point clears redo stack
+  LM.redoStack=[];
 
   // Reset notes
   const notesEl=document.getElementById('bs-notes');
@@ -1988,7 +2171,9 @@ function bsCommitPoint(){
     } else {
       ms.currentSetIndex++;
       ms.sets.push(newSet());
-      toast('✅ Set '+(ms.currentSetIndex)+' complete! Starting Set '+(ms.currentSetIndex+1));
+      // Prompt for next set server
+      const nextSet=ms.currentSetIndex+1;
+      toast('✅ Set '+nextSet+' starts! Serve rotation continues from current server.');
     }
     saveLocal(); saveFB();
     updateScoreboard();
@@ -1997,11 +2182,13 @@ function bsCommitPoint(){
       document.getElementById('lm-scoring-section').style.display='none';
       document.getElementById('lm-ended-section').style.display='block';
       document.getElementById('lm-result-text').textContent=
-        `🏆 Group ${ms.winner} wins! ${ms.setsWonA}–${ms.setsWonB} sets`;
+        `🏆 ${gName(ms.winner)} wins! ${ms.setsWonA}–${ms.setsWonB} sets`;
       document.getElementById('lm-bonus-info').innerHTML=
-        `A: <strong style="color:var(--fire3)">${ms.matchPointsA}pts</strong> (bonus: +${ms.bonusA}) &nbsp;|&nbsp;
-         B: <strong style="color:var(--blue)">${ms.matchPointsB}pts</strong> (bonus: +${ms.bonusB})`;
+        `${gName('A')}: <strong style="color:var(--fire3)">${ms.matchPointsA}pts</strong> (bonus: +${ms.bonusA}) &nbsp;|&nbsp;
+         ${gName('B')}: <strong style="color:var(--blue)">${ms.matchPointsB}pts</strong> (bonus: +${ms.bonusB})`;
       renderFixturesUI();
+      // Show match summary popup
+      setTimeout(()=>showMatchSummary(f, ms), 300);
     }
   }
 }
@@ -2043,6 +2230,10 @@ function qpConfirm(){ bsConfirm(); }
 function qpSelectTeam(team){ openPointSheet(team); }
 function qpCancel(){ closePointSheet(); }
 function qpSelectReason(code){ bsSelectReason(code); }
+// Old point-modal stubs (modal still in DOM but replaced by bottom sheet)
+function selectTeam(team){ closePointModal(); openPointSheet(team); }
+function selectReason(code){ bsSelectReason(code.toUpperCase()); }
+function confirmPoint(){ bsConfirm(); }
 
 
 // ── confirmPoint removed (replaced by qpConfirm) ──
@@ -2103,6 +2294,13 @@ function undoLastPoint(){
   if(!cs||cs.events.length===0){ toast('Nothing to undo!'); return; }
 
   const ev=cs.events.pop();
+  // Push to redo stack (store enough to redo)
+  LM.redoStack.push({
+    ev, setIdx,
+    serveRotationIdx: ms.serveRotationIdx,
+    setsWonA: ms.setsWonA, setsWonB: ms.setsWonB,
+    winner: ms.winner, status: ms.status, currentSetIndex: ms.currentSetIndex
+  });
   if(ev.winningTeam==='A') cs.pointsA=Math.max(0,cs.pointsA-1);
   else cs.pointsB=Math.max(0,cs.pointsB-1);
 
@@ -2142,8 +2340,31 @@ function undoLastPoint(){
 }
 
 function toggleTimeline(){
-  // Timeline is always visible now - this function kept as no-op for compatibility
   updateTimeline();
+}
+
+function redoLastPoint(){
+  if(!LM.redoStack.length){ toast('Nothing to redo!'); return; }
+  const f=S.fixtures[LM.fixtureIdx]; if(!f) return;
+  const ms=f.matchState;
+  const snap=LM.redoStack.pop();
+  const cs=ms.sets[snap.setIdx];
+  if(!cs){ toast('Cannot redo — set state mismatch'); return; }
+  cs.events.push(snap.ev);
+  if(snap.ev.winningTeam==='A') cs.pointsA++;
+  else cs.pointsB++;
+  // Restore rotation
+  if(ms.serveRotation) ms.serveRotationIdx=(snap.serveRotationIdx+1)%ms.serveRotation.length;
+  // Recheck set/match
+  const setEnded=checkSetEnd(ms, snap.setIdx);
+  if(setEnded){
+    const matchEnded=checkMatchEnd(f, ms);
+    if(matchEnded){ computeMatchPoints(f, ms); f.status='completed'; }
+    else { ms.currentSetIndex++; ms.sets.push(newSet()); }
+  }
+  saveLocal(); saveFB();
+  updateScoreboard(); updateTimeline();
+  toast('Redo ↪');
 }
 
 function updateTimeline(){
@@ -2177,7 +2398,7 @@ function updateTimeline(){
     return `<div class="tl-event">
       <span class="tl-num">${total-i}</span>
       <div class="tl-body">
-        <strong class="${tcl}">Grp ${ev.winningTeam}</strong> ·
+        <strong class="${tcl}">${gName(ev.winningTeam)}</strong> ·
         ${reasonTxt} ·
         <span style="color:var(--green)">${scorerTxt}</span>↑
         <span style="color:#EF5350"> ${concederTxt}</span>↓
@@ -2196,17 +2417,17 @@ function refreshStandings(){
   const body=document.getElementById('standings-body');
 
   const winnerBanner=totalA>totalB?'win-a':totalB>totalA?'win-b':'win-tie';
-  const winnerText=totalA>totalB?'⚡ GROUP A LEADS':totalB>totalA?'💎 GROUP B LEADS':'🤝 TIED';
+  const winnerText=totalA>totalB?`${gIcon('A')} ${gName('A').toUpperCase()} LEADS`:totalB>totalA?`${gIcon('B')} ${gName('B').toUpperCase()} LEADS`:'🤝 TIED';
 
   let html=`
   <div class="team-totals">
     <div class="team-card a">
-      <div style="font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--fire3);margin-bottom:6px;letter-spacing:2px">GROUP A</div>
+      <div style="font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--fire3);margin-bottom:6px;letter-spacing:2px">${gName('A').toUpperCase()}</div>
       <div class="team-pts">${totalA}</div>
       <div class="team-label">Tournament Points</div>
     </div>
     <div class="team-card b">
-      <div style="font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--blue);margin-bottom:6px;letter-spacing:2px">GROUP B</div>
+      <div style="font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--blue);margin-bottom:6px;letter-spacing:2px">${gName('B').toUpperCase()}</div>
       <div class="team-pts">${totalB}</div>
       <div class="team-label">Tournament Points</div>
     </div>
@@ -2302,13 +2523,274 @@ function computePlayerStats(){
     });
   });
 
+  // Compute clutch, streaks, winners, golden points
+  (S.fixtures||[]).forEach(f=>{
+    const ms=f.matchState||{};
+    if(ms.status!=='completed') return;
+    ms.sets.forEach((s, si)=>{
+      // Track cumulative scores per event to detect clutch
+      let runA=0, runB=0;
+      // Streak tracking per player
+      const streakMap={};
+      let currentStreak=null; // {pid, count}
+      // Trail deficit tracking (comeback hero)
+      const deficitA={}, deficitB={};
+      s.events.forEach((ev, ei)=>{
+        const pid=ev.scorerPlayerId;
+        const rc=(ev.reasonCode||'').toUpperCase();
+        // Winners count
+        if(rc==='WINNER'&&stats[pid]) stats[pid].winners=(stats[pid].winners||0)+1;
+        // Clutch: at score 18+/18+ or 20+/20+
+        const loA=ev.winningTeam==='A'?runA:runB;
+        const loB=ev.winningTeam==='A'?runB:runA;
+        if(loA>=18&&loB>=18&&stats[pid]) stats[pid].clutch18=(stats[pid].clutch18||0)+1;
+        if(loA>=20&&loB>=20&&stats[pid]) stats[pid].clutch20=(stats[pid].clutch20||0)+1;
+        // Increment running score
+        if(ev.winningTeam==='A') runA++; else runB++;
+        // Golden point: set ends 31-30
+        if(s.winner&&s.pointsA+s.pointsB===61&&stats[pid]) stats[pid].goldenPoints=(stats[pid].goldenPoints||0)+1;
+        // Streak
+        if(currentStreak&&currentStreak.pid===pid){
+          currentStreak.count++;
+        } else {
+          currentStreak={pid, count:1};
+        }
+        if(stats[pid]) stats[pid].maxStreak=Math.max(stats[pid].maxStreak||0, currentStreak.count);
+        // Comeback: track if a team was down 5+ at some point in this set
+        if(runA-runB<=-5) deficitA.hit=true;
+        if(runB-runA<=-5) deficitB.hit=true;
+      });
+      // Mark comeback if the team that was 5+ down won the set
+      if(s.winner==='A'&&deficitA.hit){
+        f.pairA.forEach(pid=>{ if(stats[pid]) stats[pid].comebackWins=(stats[pid].comebackWins||0)+1; });
+      }
+      if(s.winner==='B'&&deficitB.hit){
+        f.pairB.forEach(pid=>{ if(stats[pid]) stats[pid].comebackWins=(stats[pid].comebackWins||0)+1; });
+      }
+    });
+  });
+
   // Compute PPI
   Object.values(stats).forEach(p=>{
     p.ppi = (p.matchesWon*5) + (p.pointsScored/10) + (p.bonusEarned*2) + p.adaptabilityWins;
     p.ppi=Math.round(p.ppi*10)/10;
+    p.winners=p.winners||0;
+    p.clutch18=p.clutch18||0;
+    p.clutch20=p.clutch20||0;
+    p.maxStreak=p.maxStreak||0;
+    p.goldenPoints=p.goldenPoints||0;
+    p.comebackWins=p.comebackWins||0;
   });
 
   return Object.values(stats).sort((a,b)=>b.ppi-a.ppi);
+}
+
+// ─── Compute achievements (called from refreshStats) ───
+function computeAchievements(pStats){
+  // Need at least some matches played
+  if(pStats.every(p=>p.matchesPlayed===0)) return [];
+  const played=pStats.filter(p=>p.matchesPlayed>0);
+  const pick=(arr,key,min=0)=>{ const s=[...arr].sort((a,b)=>b[key]-a[key])[0]; return s&&s[key]>min?s:null; };
+  const achvs=[
+    { icon:'⚡', name:'Clutch King', desc:'Most clutch points (≥20-20)',
+      holder: pick(played,'clutch20',0) },
+    { icon:'🛡', name:'The Wall', desc:'Fewest conceded per match',
+      holder: played.length>0?[...played].filter(p=>p.matchesPlayed>=1).sort((a,b)=>(a.pointsConceded/a.matchesPlayed)-(b.pointsConceded/b.matchesPlayed))[0]:null },
+    { icon:'🎯', name:'Sniper', desc:'Most winners',
+      holder: pick(played,'winners',0) },
+    { icon:'🔥', name:'On Fire', desc:'Longest scoring streak',
+      holder: pick(played,'maxStreak',2) },
+    { icon:'💪', name:'Comeback Hero', desc:'Won a set after being 5+ down',
+      holder: pick(played,'comebackWins',0) },
+    { icon:'👑', name:'Destroyer', desc:'Most bonus match wins',
+      holder: pick(played,'bonusEarned',0) },
+    { icon:'🌟', name:'MVP', desc:'Top Player Performance Index',
+      holder: pick(played,'ppi',0) },
+    { icon:'✨', name:'Golden Point', desc:'Won a golden-point rally (31-30)',
+      holder: pick(played,'goldenPoints',0) },
+  ];
+  return achvs;
+}
+
+// ─── Match summary popup ───
+function showMatchSummary(f, ms){
+  const overlay=document.getElementById('match-summary'); if(!overlay) return;
+  // Compute who scored most in this match
+  const allEvts=ms.sets.flatMap(s=>s.events);
+  const scoreMap={};
+  allEvts.forEach(ev=>{ scoreMap[ev.scorerPlayerId]=(scoreMap[ev.scorerPlayerId]||0)+1; });
+  const topScorerPid=Object.entries(scoreMap).sort((a,b)=>b[1]-a[1])[0];
+  const topScorer=topScorerPid?getPlayerById(topScorerPid[0]):null;
+  // Streaks
+  let maxStreak=0, curStreak=0, curPid=null;
+  allEvts.forEach(ev=>{
+    if(ev.scorerPlayerId===curPid){ curStreak++; } else { curStreak=1; curPid=ev.scorerPlayerId; }
+    maxStreak=Math.max(maxStreak,curStreak);
+  });
+  // Golden point
+  const goldenSet=ms.sets.find(s=>s.winner&&s.pointsA+s.pointsB===61);
+  const goldenEvt=goldenSet?goldenSet.events[goldenSet.events.length-1]:null;
+  const goldenScorer=goldenEvt?getPlayerById(goldenEvt.scorerPlayerId):null;
+  // Set scores
+  const setScoresTxt=ms.sets.filter(s=>s.winner).map(s=>`${s.pointsA}-${s.pointsB}`).join(', ');
+  const winnerName=gName(ms.winner);
+  document.getElementById('msumm-title').innerHTML=`🏆 ${winnerName} Wins!`;
+  let rows=`
+    <div class="msumm-row"><span class="ml">Match Points</span><span class="mr">${ms.winner==='A'?ms.matchPointsA:ms.matchPointsB} pts${(ms.winner==='A'?ms.bonusA:ms.bonusB)>0?' (incl. +' +(ms.winner==='A'?ms.bonusA:ms.bonusB)+' bonus)':''}</span></div>
+    <div class="msumm-row"><span class="ml">Sets</span><span class="mr">${ms.setsWonA}–${ms.setsWonB}</span></div>
+    <div class="msumm-row"><span class="ml">Set Scores</span><span class="mr">${setScoresTxt||'—'}</span></div>
+    <div class="msumm-row"><span class="ml">Top Scorer</span><span class="mr">${topScorer?topScorer.name+' ('+topScorerPid[1]+' pts)':'—'}</span></div>
+    <div class="msumm-row"><span class="ml">Longest Streak</span><span class="mr">${maxStreak} in a row</span></div>
+    ${goldenScorer?`<div class="msumm-row"><span class="ml">⭐ Golden Point</span><span class="mr">${goldenScorer.name}</span></div>`:''}
+  `;
+  document.getElementById('msumm-body').innerHTML=rows;
+  overlay.classList.remove('hid');
+}
+function closeMatchSummary(){
+  document.getElementById('match-summary').classList.add('hid');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ⑰ HISTORY TAB
+// ═══════════════════════════════════════════════════════════
+const HIST_INDEX_KEY = 'sm26_hist_index'; // array of {sid, created, groupNameA, groupNameB, archived}
+
+function histGetIndex(){
+  try{ return JSON.parse(localStorage.getItem(HIST_INDEX_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function histSaveIndex(arr){
+  localStorage.setItem(HIST_INDEX_KEY, JSON.stringify(arr));
+}
+
+function histAddCurrentToIndex(){
+  const idx=histGetIndex();
+  const existing=idx.find(x=>x.sid===S.sessionId);
+  const entry={
+    sid:S.sessionId,
+    created:S.created||new Date().toISOString(),
+    groupNameA:S.groupNameA||'Group A',
+    groupNameB:S.groupNameB||'Group B',
+    archived:false,
+    matchCount:(S.fixtures||[]).length,
+    completedCount:(S.fixtures||[]).filter(f=>f.status==='completed').length,
+  };
+  if(!existing) idx.unshift(entry);
+  else Object.assign(existing, entry);
+  histSaveIndex(idx);
+}
+
+function histRefreshList(){
+  const el=document.getElementById('hist-list'); if(!el) return;
+  // Auto-add current session to index
+  if(S.sessionId) histAddCurrentToIndex();
+  const idx=histGetIndex();
+  if(!idx.length){
+    el.innerHTML='<div class="ibox">No sessions found. Completed sessions appear here automatically.</div>'; return;
+  }
+  let html='';
+  idx.forEach(entry=>{
+    const isActive=entry.sid===S.sessionId;
+    const date=entry.created?new Date(entry.created).toLocaleDateString():'?';
+    html+=`<div class="hist-item${entry.archived?' hist-archived':''}" id="hi-${entry.sid}">
+      <div>
+        <h4>${isActive?'📍 ':''}<span class="badge${isActive?'':' badge-b'}">${entry.sid}</span>
+          ${entry.archived?'<span class="badge-g" style="font-size:.62rem;padding:1px 5px;border-radius:3px;background:rgba(74,222,128,.1);color:var(--green);margin-left:4px">Archived</span>':''}</h4>
+        <p>${date} · ${entry.groupNameA||'A'} vs ${entry.groupNameB||'B'} · ${entry.completedCount||0}/${entry.matchCount||0} matches done</p>
+      </div>
+      <div class="hist-acts">
+        ${!isActive?`<button class="btn btn-ghost btn-xs" onclick="histLoad('${entry.sid}')">Load</button>`:'<span class="badge-g" style="font-size:.62rem;padding:2px 6px;border-radius:3px;background:rgba(74,222,128,.08);color:var(--green)">Current</span>'}
+        <button class="btn btn-ghost btn-xs" onclick="histExportJSON('${entry.sid}')">📤 JSON</button>
+        <button class="btn btn-ghost btn-xs" onclick="histToggleArchive('${entry.sid}')">${entry.archived?'Unarchive':'Archive'}</button>
+        <button class="btn btn-red btn-xs" onclick="histDelete('${entry.sid}')">🗑</button>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+function histExportCurrentJSON(){
+  histExportJSON(S.sessionId);
+}
+
+function histExportJSON(sid){
+  let data;
+  if(sid===S.sessionId){
+    data=S;
+  } else {
+    try{ data=JSON.parse(localStorage.getItem('sm26v2_'+sid)||'null'); }
+    catch(e){ toast('Session not found'); return; }
+  }
+  if(!data){ toast('No data for session '+sid); return; }
+  const json=JSON.stringify(data, null, 2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='shuttle-mayhem-'+sid+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Exported: '+sid);
+}
+
+function histImport(){
+  document.getElementById('hist-file-inp').click();
+}
+
+function histFileLoad(inp){
+  const file=inp.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.sessionId) throw new Error('Invalid format: missing sessionId');
+      // Save imported session under its own key
+      localStorage.setItem('sm26v2_'+data.sessionId, JSON.stringify(data));
+      // Add to index
+      const idx=histGetIndex();
+      if(!idx.find(x=>x.sid===data.sessionId)){
+        idx.unshift({
+          sid:data.sessionId,
+          created:data.created,
+          groupNameA:data.groupNameA||'Group A',
+          groupNameB:data.groupNameB||'Group B',
+          archived:false,
+          matchCount:(data.fixtures||[]).length,
+          completedCount:(data.fixtures||[]).filter(f=>f.status==='completed').length,
+        });
+        histSaveIndex(idx);
+      }
+      histRefreshList();
+      toast('Imported session: '+data.sessionId);
+    }catch(err){
+      toast('Import failed: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+  inp.value='';
+}
+
+function histLoad(sid){
+  if(!confirm('Load session '+sid+'? Current session will not be lost — switch back from the session pill anytime.')) return;
+  const data=JSON.parse(localStorage.getItem('sm26v2_'+sid)||'null');
+  if(!data){ toast('Session not found in local storage'); return; }
+  S=data; SID=S.sessionId;
+  updateSidUI(); restoreUI();
+  histRefreshList();
+  toast('Loaded session: '+SID);
+}
+
+function histToggleArchive(sid){
+  const idx=histGetIndex();
+  const entry=idx.find(x=>x.sid===sid);
+  if(entry){ entry.archived=!entry.archived; histSaveIndex(idx); histRefreshList(); }
+}
+
+function histDelete(sid){
+  if(sid===S.sessionId){ toast('Cannot delete current active session'); return; }
+  if(!confirm('Delete session '+sid+' from this device? This only removes local data.')) return;
+  localStorage.removeItem('sm26v2_'+sid);
+  const idx=histGetIndex().filter(x=>x.sid!==sid);
+  histSaveIndex(idx); histRefreshList();
+  toast('Deleted: '+sid);
 }
 
 function refreshStats(){
@@ -2319,13 +2801,32 @@ function refreshStats(){
     body.innerHTML='<div class="ibox">No matches played yet. Score some matches to see individual stats!</div>'; return;
   }
 
-  // Leaderboards
-  const mvp=pStats[0];
-  const dominant=[...pStats].sort((a,b)=>b.bonusEarned-a.bonusEarned)[0];
-  const scorer=[...pStats].sort((a,b)=>b.pointsScored-a.pointsScored)[0];
-  const defender=[...pStats].filter(p=>p.matchesPlayed>=1).sort((a,b)=>(a.pointsConceded/Math.max(1,a.matchesPlayed))-(b.pointsConceded/Math.max(1,b.matchesPlayed)))[0];
+  const played=pStats.filter(p=>p.matchesPlayed>0);
 
-  let html=`<div class="ppi-cards">
+  // ── Achievements shelf ──
+  const achvs=computeAchievements(pStats);
+  let html=`<div class="sh"><h2 style="font-size:1rem">🏅 Achievements</h2></div>
+  <div class="achv-shelf">`;
+  achvs.forEach(a=>{
+    const dim=!a.holder;
+    html+=`<div class="achv${dim?' dim':''}">
+      <span class="achv-icon">${a.icon}</span>
+      <span class="achv-name">${a.name}</span>
+      <span class="achv-holder">${a.holder?a.holder.name:'—'}</span>
+      <span class="achv-desc">${a.desc}</span>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // ── Leaderboard cards ──
+  const mvp=pStats[0];
+  const dominant=[...played].sort((a,b)=>b.bonusEarned-a.bonusEarned)[0];
+  const scorer=[...played].sort((a,b)=>b.pointsScored-a.pointsScored)[0];
+  const defender=[...played].sort((a,b)=>(a.pointsConceded/Math.max(1,a.matchesPlayed))-(b.pointsConceded/Math.max(1,b.matchesPlayed)))[0];
+  const clutcher=[...played].sort((a,b)=>b.clutch20-a.clutch20)[0];
+  const sniper=[...played].sort((a,b)=>b.winners-a.winners)[0];
+
+  html+=`<div class="ppi-cards">
     <div class="ppi-card">
       <h4>👑 MVP</h4>
       <div class="ppi-name">${mvp.name}</div>
@@ -2333,22 +2834,34 @@ function refreshStats(){
       <div class="ppi-sub">${mvp.matchesWon}W · ${mvp.pointsScored} pts scored</div>
     </div>
     <div class="ppi-card">
-      <h4>💥 Most Dominant</h4>
-      <div class="ppi-name">${dominant.name}</div>
-      <div class="ppi-val">+${dominant.bonusEarned.toFixed(1)} bonus</div>
-      <div class="ppi-sub">${dominant.matchesWon} match wins</div>
+      <h4>🏸 Top Scorer</h4>
+      <div class="ppi-name">${scorer?scorer.name:'—'}</div>
+      <div class="ppi-val">${scorer?scorer.pointsScored:0} pts</div>
+      <div class="ppi-sub">${scorer?scorer.matchesPlayed:0} matches</div>
     </div>
     <div class="ppi-card">
-      <h4>🏸 Top Scorer</h4>
-      <div class="ppi-name">${scorer.name}</div>
-      <div class="ppi-val">${scorer.pointsScored} points</div>
-      <div class="ppi-sub">${scorer.matchesPlayed} matches played</div>
+      <h4>⚡ Clutch King</h4>
+      <div class="ppi-name">${clutcher&&clutcher.clutch20>0?clutcher.name:'—'}</div>
+      <div class="ppi-val">${clutcher?clutcher.clutch20:0} clutch pts</div>
+      <div class="ppi-sub">scored at 20+ each</div>
+    </div>
+    <div class="ppi-card">
+      <h4>🎯 Sniper</h4>
+      <div class="ppi-name">${sniper&&sniper.winners>0?sniper.name:'—'}</div>
+      <div class="ppi-val">${sniper?sniper.winners:0} winners</div>
+      <div class="ppi-sub">outright winners</div>
     </div>
     <div class="ppi-card">
       <h4>🛡 Best Defense</h4>
       <div class="ppi-name">${defender?defender.name:'—'}</div>
-      <div class="ppi-val">${defender?(defender.pointsConceded/Math.max(1,defender.matchesPlayed)).toFixed(1)+' conceded/match':'—'}</div>
-      <div class="ppi-sub">${defender?defender.matchesPlayed+' matches':''}</div>
+      <div class="ppi-val">${defender?(defender.pointsConceded/Math.max(1,defender.matchesPlayed)).toFixed(1)+'/match':'—'}</div>
+      <div class="ppi-sub">${defender?defender.matchesPlayed:0} matches</div>
+    </div>
+    <div class="ppi-card">
+      <h4>🔥 On Fire</h4>
+      <div class="ppi-name">${played.length?[...played].sort((a,b)=>b.maxStreak-a.maxStreak)[0].name:'—'}</div>
+      <div class="ppi-val">${played.length?[...played].sort((a,b)=>b.maxStreak-a.maxStreak)[0].maxStreak:0} streak</div>
+      <div class="ppi-sub">consecutive points</div>
     </div>
   </div>`;
 
@@ -2357,7 +2870,7 @@ function refreshStats(){
   <div class="stbl-wrap"><table class="stbl">
     <thead><tr>
       <th>#</th><th>Player</th><th>Grp</th><th>MP</th><th>W</th>
-      <th>Scored</th><th>Conceded</th><th>Bonus</th><th>Adapt</th><th>PPI</th><th></th>
+      <th>Scored</th><th>Conceded</th><th>Winners</th><th>Clutch</th><th>Streak</th><th>PPI</th><th></th>
     </tr></thead><tbody>`;
 
   pStats.forEach((p,i)=>{
@@ -2372,8 +2885,9 @@ function refreshStats(){
       <td style="font-weight:700;color:var(--green)">${p.matchesWon}</td>
       <td style="color:var(--fire3);font-family:'Share Tech Mono',monospace">${p.pointsScored}</td>
       <td style="color:#EF5350;font-family:'Share Tech Mono',monospace">${p.pointsConceded}</td>
-      <td style="color:var(--gold);font-family:'Share Tech Mono',monospace">+${p.bonusEarned.toFixed(1)}</td>
-      <td style="color:var(--purple);font-family:'Share Tech Mono',monospace">${p.adaptabilityWins}</td>
+      <td style="color:var(--gold);font-family:'Share Tech Mono',monospace">${p.winners||0}</td>
+      <td style="color:var(--gold);font-family:'Share Tech Mono',monospace">${p.clutch20||0}</td>
+      <td style="color:var(--green);font-family:'Share Tech Mono',monospace">${p.maxStreak||0}</td>
       <td><span class="pts-b">${p.ppi}</span></td>
       <td><button class="btn btn-ghost btn-xs" onclick="showPlayerDetail('${p.id}')">Detail</button></td>
     </tr>`;
@@ -2381,8 +2895,8 @@ function refreshStats(){
 
   html+=`</tbody></table></div>
   <div class="ibox" style="margin-top:12px">
-    <strong>PPI Formula:</strong> (Wins × 5) + (Points Scored / 10) + (Bonus Earned × 2) + Adaptability Wins<br>
-    <em>Adaptability Wins</em> = number of distinct partners you've won with.
+    <strong>PPI Formula:</strong> (Wins × 5) + (Scored / 10) + (Bonus × 2) + AdaptabilityWins · 
+    <strong>Clutch</strong> = pts scored when both ≥20 · <strong>Streak</strong> = longest consecutive scoring run
   </div>`;
 
   body.innerHTML=html;
@@ -2400,8 +2914,13 @@ function showPlayerDetail(pid){
     <div class="detail-row"><span class="detail-label">Matches Won</span><span class="detail-val" style="color:var(--green)">${p.matchesWon}</span></div>
     <div class="detail-row"><span class="detail-label">Points Scored</span><span class="detail-val" style="color:var(--fire3)">${p.pointsScored}</span></div>
     <div class="detail-row"><span class="detail-label">Points Conceded</span><span class="detail-val" style="color:#EF5350">${p.pointsConceded}</span></div>
+    <div class="detail-row"><span class="detail-label">Winners</span><span class="detail-val" style="color:var(--gold)">${p.winners||0}</span></div>
+    <div class="detail-row"><span class="detail-label">Clutch (≥18-18)</span><span class="detail-val" style="color:var(--gold)">${p.clutch18||0} pts</span></div>
+    <div class="detail-row"><span class="detail-label">Clutch (≥20-20)</span><span class="detail-val" style="color:var(--fire3)">${p.clutch20||0} pts</span></div>
+    <div class="detail-row"><span class="detail-label">Longest Streak</span><span class="detail-val" style="color:var(--green)">${p.maxStreak||0} pts</span></div>
+    <div class="detail-row"><span class="detail-label">Golden Points</span><span class="detail-val" style="color:var(--gold)">${p.goldenPoints||0}</span></div>
+    <div class="detail-row"><span class="detail-label">Comeback Wins</span><span class="detail-val" style="color:var(--purple)">${p.comebackWins||0}</span></div>
     <div class="detail-row"><span class="detail-label">Bonus Earned</span><span class="detail-val" style="color:var(--gold)">+${p.bonusEarned.toFixed(1)}</span></div>
-    <div class="detail-row"><span class="detail-label">Adaptability Wins</span><span class="detail-val" style="color:var(--purple)">${p.adaptabilityWins}</span></div>
     <div class="detail-row"><span class="detail-label">PPI Score</span><span class="detail-val" style="color:var(--gold);font-size:1.1rem">${p.ppi}</span></div>
   </div>`;
 
@@ -2648,8 +3167,8 @@ function exportPDF(type){
   // Cover
   rc(0,0,W,50,[20,8,0]);rc(0,50,W,2,[192,0,26]);
   sf(24,'bold',[255,215,0]);doc.text('SHUTTLE MAYHEM 2026',W/2,18,{align:'center'});
-  sf(11,'bold',[255,150,0]);doc.text('Group A vs Group B — Tournament Report',W/2,30,{align:'center'});
-  sf(7,'normal',[255,180,100]);doc.text('Sets to 21 (win by 2, max 31) · 5 Rounds · R1-R3 Single · R4-R5 Best of 3',W/2,40,{align:'center'});
+  sf(11,'bold',[255,150,0]);doc.text(gName('A')+' vs '+gName('B')+' — Tournament Report',W/2,30,{align:'center'});
+  sf(7,'normal',[255,180,100]);doc.text(gName('A')+' vs '+gName('B')+' · Sets to 21 (win by 2, max 31) · 5 Rounds · R1-R3 Single · R4-R5 Best of 3',W/2,40,{align:'center'});
   sf(6,'normal',[200,150,80]);doc.text(`Session: ${S.sessionId} · Generated: ${new Date().toLocaleString()}`,W/2,48,{align:'center'});
   y=58;
 
@@ -2669,7 +3188,7 @@ function exportPDF(type){
   y+=5;chk(30);
   sf(10,'bold',[192,0,26]);doc.text('PLAYERS',M,y);y+=5;
   rc(M,y,W-2*M,7,[192,0,26]);sf(7,'bold',[255,255,255]);
-  doc.text('Rank',M+2,y+5);doc.text('Group A Player',M+18,y+5);doc.text('Group B Player',M+100,y+5);y+=9;
+  doc.text('Rank',M+2,y+5);doc.text(gName('A')+' Player',M+18,y+5);doc.text(gName('B')+' Player',M+100,y+5);y+=9;
   for(let rank=1;rank<=8;rank++){
     chk(6);const pA=getPlayer('A',rank),pB=getPlayer('B',rank);
     rc(M,y,W-2*M,6,rank%2===0?[255,255,255]:[255,250,240]);
@@ -2695,7 +3214,7 @@ function exportPDF(type){
       sf(8,'bold',[192,0,26]);doc.text('VS',W/2,y+5.5,{align:'center'});
       if(ms.status==='completed'){
         const setStr=(ms.sets||[]).filter(s=>s.winner).map(s=>s.pointsA+'-'+s.pointsB).join(', ');
-        sf(7,'bold',[0,100,0]);doc.text(`Result: Group ${ms.winner} wins · Sets: ${setStr}`,M+2,y+10.5);
+        sf(7,'bold',[0,100,0]);doc.text(`Result: ${gName(ms.winner)} wins · Sets: ${setStr}`,M+2,y+10.5);
         sf(7,'bold',[100,70,0]);doc.text(`A: ${ms.matchPointsA}pts (+${ms.bonusA}) · B: ${ms.matchPointsB}pts (+${ms.bonusB})`,W-M-2,y+10.5,{align:'right'});
       } else { sf(7,'normal',[150,100,60]);doc.text('Not completed',M+2,y+10.5); }
       y+=13;
@@ -2705,8 +3224,8 @@ function exportPDF(type){
     chk(25);y+=4;hl(y);y+=5;
     const {totalA,totalB}=computeTeamTotals();
     sf(11,'bold',[192,0,26]);doc.text('FINAL SCORE',M,y);y+=6;
-    rc(M,y,(W-2*M)/2-5,16,[40,0,5]);sf(12,'bold',[255,215,0]);doc.text('GROUP A',M+8,y+7);sf(16,'bold',[255,180,50]);doc.text(String(totalA),M+8,y+14);
-    rc(M+(W-2*M)/2+5,y,(W-2*M)/2-5,16,[5,10,40]);sf(12,'bold',[150,200,255]);doc.text('GROUP B',M+(W-2*M)/2+13,y+7);sf(16,'bold',[100,180,255]);doc.text(String(totalB),M+(W-2*M)/2+13,y+14);
+    rc(M,y,(W-2*M)/2-5,16,[40,0,5]);sf(12,'bold',[255,215,0]);doc.text(gName('A').toUpperCase(),M+8,y+7);sf(16,'bold',[255,180,50]);doc.text(String(totalA),M+8,y+14);
+    rc(M+(W-2*M)/2+5,y,(W-2*M)/2-5,16,[5,10,40]);sf(12,'bold',[150,200,255]);doc.text(gName('B').toUpperCase(),M+(W-2*M)/2+13,y+7);sf(16,'bold',[100,180,255]);doc.text(String(totalB),M+(W-2*M)/2+13,y+14);
     y+=20;
   }
 
