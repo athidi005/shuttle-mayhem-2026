@@ -483,6 +483,33 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .bs-reason-btn:hover{border-color:var(--fire3);color:var(--sand);}
 .bs-reason-btn.sel{border-color:var(--green);background:rgba(74,222,128,.1);color:var(--green);font-weight:700;}
 
+/* ─────────── COURT POSITION SELECTOR ─────────── */
+.court-pos-wrap{margin-top:14px;}
+.court-pos-title{font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--ash);font-weight:700;margin-bottom:8px;}
+.court-pos-hint{font-size:.7rem;color:var(--stone3);margin-bottom:10px;line-height:1.5;}
+.court-diagram{display:grid;grid-template-columns:1fr 4px 1fr;gap:0;
+  border:1.5px solid var(--stone2);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.court-half{padding:10px 8px;background:rgba(255,255,255,.02);}
+.court-half.team-a{border-right:none;}
+.court-half.team-b{border-left:none;}
+.court-net{background:var(--stone2);width:4px;}
+.court-half-label{font-size:.62rem;color:var(--ash);letter-spacing:1px;
+  text-transform:uppercase;text-align:center;margin-bottom:8px;}
+.court-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.pos-player-block{display:flex;flex-direction:column;gap:4px;}
+.pos-pname{font-size:.75rem;color:var(--cream);text-align:center;font-weight:600;
+  font-family:'Rajdhani',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pos-btn-pair{display:flex;gap:3px;}
+.pos-btn{flex:1;padding:6px 2px;border:1.5px solid var(--stone2);border-radius:5px;
+  background:rgba(255,255,255,.03);color:var(--ash);font-family:'Rajdhani',sans-serif;
+  font-weight:600;font-size:.7rem;cursor:pointer;transition:all .13s;text-align:center;
+  -webkit-tap-highlight-color:transparent;}
+.pos-btn:hover{border-color:var(--fire3);color:var(--sand);}
+.pos-btn.sel-pos.side-a{border-color:var(--fire1);background:rgba(255,69,0,.18);color:var(--fire3);}
+.pos-btn.sel-pos.side-b{border-color:var(--blue);background:rgba(96,165,250,.15);color:var(--blue);}
+.pos-optional-note{font-size:.68rem;color:var(--stone3);text-align:center;margin-top:4px;}
+
 /* Conceded / Organizer view */
 .organizer-lock{display:inline-flex;align-items:center;gap:5px;cursor:pointer;
   padding:4px 10px;border:1px solid var(--stone2);border-radius:12px;font-size:.72rem;
@@ -734,6 +761,85 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
     </div>
   </div>
   <div class="brow"><button class="btn btn-fire" onclick="goTo('groupa')">Enter Players →</button></div>
+
+  <!-- ── Scoring Examples ─────────────────────────────────────────────── -->
+  <div style="margin-top:6px;margin-bottom:6px;">
+    <div class="rcard" style="border-color:rgba(255,107,0,.35)">
+      <h4 style="margin-bottom:10px">📝 How to Log a Point — Examples for Organizers</h4>
+      <p style="font-size:.74rem;color:var(--ash);margin-bottom:12px;line-height:1.6;">
+        When tapping <strong style="color:var(--fire3)">+ Point</strong> during a match, you select the winning team, who scored, who conceded, and <em>how</em> the point was won. Use the examples below as a quick reference.
+      </p>
+      <table class="score-tbl">
+        <thead>
+          <tr>
+            <th>Shot / Situation</th>
+            <th>Who Scored</th>
+            <th>Who Conceded</th>
+            <th>Select "How"</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>🏸 <strong>Smash winner</strong> — attacker smashes, opponent can't return</td>
+            <td>The smasher</td>
+            <td>Player who failed to return</td>
+            <td><span style="color:var(--gold)">🏸 Winner</span></td>
+          </tr>
+          <tr>
+            <td>🎯 <strong>Drop shot winner</strong> — tight net drop, opponent doesn't reach</td>
+            <td>Player who played the drop</td>
+            <td>Nearest opponent</td>
+            <td><span style="color:var(--gold)">🏸 Winner</span></td>
+          </tr>
+          <tr>
+            <td>🔵 <strong>Net fault</strong> — player hits the net on their shot</td>
+            <td>The other team</td>
+            <td>Player who hit the net</td>
+            <td><span style="color:var(--blue)">🔵 Net</span></td>
+          </tr>
+          <tr>
+            <td>↗ <strong>Out of bounds</strong> — shuttle lands outside the court lines</td>
+            <td>The other team</td>
+            <td>Player who hit it out</td>
+            <td><span style="color:var(--sand)">↗ Out</span></td>
+          </tr>
+          <tr>
+            <td>😬 <strong>Unforced error</strong> — player mishits/nets with no pressure</td>
+            <td>The other team</td>
+            <td>Player who made the error</td>
+            <td><span style="color:var(--ash)">😬 Unforced</span></td>
+          </tr>
+          <tr>
+            <td>💥 <strong>Forced error</strong> — opponent's good shot forced a mis-return</td>
+            <td>The team who applied pressure</td>
+            <td>Player forced into the error</td>
+            <td><span style="color:var(--purple)">💥 Forced</span></td>
+          </tr>
+          <tr>
+            <td>⚡ <strong>Service fault</strong> — illegal serve (too high, wrong court, foot fault)</td>
+            <td>The receiving team</td>
+            <td>Player who served incorrectly</td>
+            <td><span style="color:var(--fire3)">⚡ Serve Fault</span></td>
+          </tr>
+          <tr>
+            <td>🏸 <strong>Clear / lift winner</strong> — deep clear to back corner, opponent can't reach</td>
+            <td>Player who played the clear</td>
+            <td>Nearest opponent (back player)</td>
+            <td><span style="color:var(--gold)">🏸 Winner</span></td>
+          </tr>
+          <tr>
+            <td>🤝 <strong>Not sure / general rally</strong> — rally ended, unsure of exact reason</td>
+            <td>Winning team's scorer</td>
+            <td>Any from losing team</td>
+            <td><span style="color:var(--gold)">🏸 Winner</span> <span style="color:var(--stone3)">(default)</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="ibox" style="margin-top:10px;font-size:.74rem">
+        💡 <strong>Quick tip:</strong> Scorer and Conceder are <em>optional</em> — you can tap <strong style="color:var(--fire3)">✓ Log Point</strong> without selecting a player if the rally was fast. The "How" field defaults to <strong>Winner</strong> so you only need to change it when something specific happened (net, out, fault etc.).
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ══════ GROUP A ══════ -->
@@ -987,8 +1093,17 @@ service cloud.firestore {
           <div class="pp-label">Choose Initial Server</div>
           <div class="pp-grid" id="server-grid"></div>
         </div>
-        <div class="ibox" style="margin-top:8px;margin-bottom:8px;font-size:.78rem">
-          🔄 <strong>Auto serve switch:</strong> Serve alternates every rally using a round-robin rotation across all 4 players.
+
+        <!-- Court Position Setup -->
+        <div class="court-pos-wrap">
+          <div class="court-pos-title">🏸 Starting Court Positions <span style="color:var(--stone3);font-weight:400;font-size:.65rem">(optional — enables auto side-tracking)</span></div>
+          <div class="court-pos-hint">Tap <strong>Left</strong> or <strong>Right</strong> for each player's starting side. The app will auto-swap positions after every point the serving team scores.</div>
+          <div id="court-pos-section"></div>
+          <div class="pos-optional-note">If left blank, serve switching still works — positions just won't be tracked.</div>
+        </div>
+
+        <div class="ibox" style="margin-top:10px;margin-bottom:8px;font-size:.78rem">
+          🏸 <strong>Badminton serve rules:</strong> The serving player keeps serving as long as their team wins the rally. Serve switches to the other team only on a <strong>side-out</strong> (serving team loses the rally).
         </div>
         <button class="btn btn-fire btn-lg" style="width:100%;justify-content:center;margin-top:8px" onclick="startMatch()">🏸 Start Match</button>
       </div>
@@ -1640,10 +1755,11 @@ function newMatchState(type){
     currentSetIndex:0,
     serverPlayerId:null,
     serverMode:'manual',
-    status:'not_started', // 'not_started'|'in_progress'|'completed'
-    winner:null, // 'A'|'B'
+    status:'not_started',
+    winner:null,
     matchPointsA:0, matchPointsB:0,
-    bonusA:0, bonusB:0
+    bonusA:0, bonusB:0,
+    courtPositions:null   // {playerId:'left'|'right',...} set at match start
   };
 }
 
@@ -1863,6 +1979,7 @@ function closeLiveModal(){
 }
 
 function buildServerGrid(f){
+  // ── Initial server picker ──────────────────────────────────────────────
   const grid=document.getElementById('server-grid'); grid.innerHTML='';
   const allPlayers=[f.pairA,f.pairB].flat().map(id=>getPlayerById(id));
   allPlayers.forEach(p=>{
@@ -1874,12 +1991,59 @@ function buildServerGrid(f){
     };
     grid.appendChild(d);
   });
+
+  // ── Court position diagram ─────────────────────────────────────────────
+  const posSection=document.getElementById('court-pos-section');
+  posSection.innerHTML='';
+
+  const pA1=getPlayerById(f.pairA[0]), pA2=getPlayerById(f.pairA[1]);
+  const pB1=getPlayerById(f.pairB[0]), pB2=getPlayerById(f.pairB[1]);
+
+  function playerBlock(p, teamSide){
+    return `<div class="pos-player-block">
+      <div class="pos-pname" title="${p.name}">${p.name}</div>
+      <div class="pos-btn-pair">
+        <button class="pos-btn side-${teamSide}" data-pid="${p.id}" data-pos="left"  onclick="selectPos(this,'${teamSide}')">◀ L</button>
+        <button class="pos-btn side-${teamSide}" data-pid="${p.id}" data-pos="right" onclick="selectPos(this,'${teamSide}')">R ▶</button>
+      </div>
+    </div>`;
+  }
+
+  posSection.innerHTML=`
+    <div class="court-diagram">
+      <div class="court-half team-a">
+        <div class="court-half-label" style="color:var(--fire3)">⚡ ${gName('A')} side</div>
+        <div class="court-row">
+          ${playerBlock(pA1,'a')}
+          ${playerBlock(pA2,'a')}
+        </div>
+      </div>
+      <div class="court-net"></div>
+      <div class="court-half team-b">
+        <div class="court-half-label" style="color:var(--blue)">💎 ${gName('B')} side</div>
+        <div class="court-row">
+          ${playerBlock(pB1,'b')}
+          ${playerBlock(pB2,'b')}
+        </div>
+      </div>
+    </div>`;
 }
 
-function setServerMode(mode){
-  LM.serverMode=mode;
-  document.getElementById('smode-manual').classList.toggle('sel',mode==='manual');
-  document.getElementById('smode-auto').classList.toggle('sel',mode==='auto');
+function selectPos(btn, teamSide){
+  const pid=btn.dataset.pid;
+  const chosenPos=btn.dataset.pos;
+  // Deselect other position for same player
+  document.querySelectorAll(`.pos-btn[data-pid="${pid}"]`).forEach(b=>b.classList.remove('sel-pos'));
+  btn.classList.add('sel-pos');
+  // If teammate already has this same position, auto-assign them the other side
+  const teamBtns=[...document.querySelectorAll(`.pos-btn.side-${teamSide}.sel-pos`)];
+  const clashes=teamBtns.filter(b=>b.dataset.pid!==pid && b.dataset.pos===chosenPos);
+  clashes.forEach(b=>{
+    document.querySelectorAll(`.pos-btn[data-pid="${b.dataset.pid}"]`).forEach(x=>x.classList.remove('sel-pos'));
+    const otherPos=chosenPos==='left'?'right':'left';
+    const swap=document.querySelector(`.pos-btn[data-pid="${b.dataset.pid}"][data-pos="${otherPos}"]`);
+    if(swap) swap.classList.add('sel-pos');
+  });
 }
 
 function startMatch(){
@@ -1888,12 +2052,19 @@ function startMatch(){
   const ms=f.matchState;
   ms.status='in_progress';
   ms.serverPlayerId=LM.serverPlayerId;
-  ms.serverMode='auto'; // always auto-rotate
-  // Build serve rotation: [A0, B0, A1, B1] starting from selected player
-  const allIds=[...f.pairA,...f.pairB]; // [A1,A2,B1,B2]
+  ms.serverMode='auto';
+  // Build serve rotation starting from chosen player: [chosen, next in pairA+pairB order...]
+  const allIds=[...f.pairA,...f.pairB];
   const startIdx=allIds.indexOf(LM.serverPlayerId);
   ms.serveRotation=allIds.slice(startIdx).concat(allIds.slice(0,startIdx));
   ms.serveRotationIdx=0;
+  // Save court positions if all four players assigned
+  const positions={};
+  allIds.forEach(pid=>{
+    const sel=document.querySelector(`.pos-btn[data-pid="${pid}"].sel-pos`);
+    if(sel) positions[pid]=sel.dataset.pos;
+  });
+  ms.courtPositions=(Object.keys(positions).length===4)?positions:null;
   f.status='in_progress';
   saveLocal(); saveFB();
   document.getElementById('lm-start-section').style.display='none';
@@ -1960,6 +2131,16 @@ function getCurrentServer(ms){
 function advanceServer(ms){
   ms.serveRotationIdx=((ms.serveRotationIdx||0)+1)%ms.serveRotation.length;
   ms.serverPlayerId=ms.serveRotation[ms.serveRotationIdx];
+}
+
+// When the serving team scores, both their players swap left/right positions
+function swapCourtPositions(ms, scoringTeam, f){
+  if(!ms.courtPositions) return;
+  const pair=scoringTeam==='A'?f.pairA:f.pairB;
+  const p=ms.courtPositions;
+  if(p[pair[0]] && p[pair[1]]){
+    const tmp=p[pair[0]]; p[pair[0]]=p[pair[1]]; p[pair[1]]=tmp;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2146,8 +2327,19 @@ function bsCommitPoint(){
     } catch(e){}
   }
 
-  // Advance server
-  advanceServer(ms);
+  // ── Serve rule (badminton rally-point) ──────────────────────────
+  // Only switch server when the SERVING team LOSES the rally (side-out).
+  // If the serving team wins, the same player keeps serving.
+  const servingPlayer = getCurrentServer(ms);
+  const servingTeamIsA = servingPlayer && f.pairA.includes(servingPlayer.id);
+  const scoringTeamIsA = BS.team === 'A';
+  if(servingTeamIsA !== scoringTeamIsA){
+    // Side-out: the other team won — advance to next server
+    advanceServer(ms);
+  } else {
+    // Serving team scored → same player serves again; swap their court positions
+    swapCourtPositions(ms, BS.team, f);
+  }
   // New point clears redo stack
   LM.redoStack=[];
 
@@ -2308,10 +2500,17 @@ function undoLastPoint(){
   if(ev.winningTeam==='A') cs.pointsA=Math.max(0,cs.pointsA-1);
   else cs.pointsB=Math.max(0,cs.pointsB-1);
 
-  // Restore serve rotation: step back one position
+  // Restore serve: only step back if a side-out happened on this point
+  // A side-out happened when the serving team (recorded in event) was NOT the winner
   if(ms.serveRotation && ms.serveRotation.length){
-    ms.serveRotationIdx=((ms.serveRotationIdx||0)-1+ms.serveRotation.length)%ms.serveRotation.length;
-    ms.serverPlayerId=ms.serveRotation[ms.serveRotationIdx];
+    const srvWasA = f.pairA.includes(ev.serverPlayerId);
+    const winnerWasA = ev.winningTeam === 'A';
+    const sideOutOccurred = srvWasA !== winnerWasA;
+    if(sideOutOccurred){
+      ms.serveRotationIdx=((ms.serveRotationIdx||0)-1+ms.serveRotation.length)%ms.serveRotation.length;
+      ms.serverPlayerId=ms.serveRotation[ms.serveRotationIdx];
+    }
+    // else serve stays as-is (server kept serving before this point)
   } else if(ev.serverPlayerId){
     ms.serverPlayerId=ev.serverPlayerId;
   }
@@ -2357,8 +2556,13 @@ function redoLastPoint(){
   cs.events.push(snap.ev);
   if(snap.ev.winningTeam==='A') cs.pointsA++;
   else cs.pointsB++;
-  // Restore rotation
-  if(ms.serveRotation) ms.serveRotationIdx=(snap.serveRotationIdx+1)%ms.serveRotation.length;
+  // Restore rotation — only advance if the redone event caused a side-out
+  if(ms.serveRotation){
+    const srvWasA = f.pairA.includes(snap.ev.serverPlayerId);
+    const winnerWasA = snap.ev.winningTeam === 'A';
+    if(srvWasA !== winnerWasA) ms.serveRotationIdx=(ms.serveRotationIdx+1)%ms.serveRotation.length;
+    ms.serverPlayerId=ms.serveRotation[ms.serveRotationIdx];
+  }
   // Recheck set/match
   const setEnded=checkSetEnd(ms, snap.setIdx);
   if(setEnded){
