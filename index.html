@@ -430,12 +430,14 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .bs-overlay.hid{display:none;}
 .bs-sheet{background:linear-gradient(175deg,#1a0a02,#0A0400);border:2px solid var(--fire1);
   border-radius:14px 14px 0 0;width:100%;max-width:560px;padding:0;
-  box-shadow:0 -8px 40px rgba(255,69,0,.35);animation:slideUp .22s ease;}
+  box-shadow:0 -8px 40px rgba(255,69,0,.35);animation:slideUp .22s ease;
+  display:flex;flex-direction:column;max-height:92vh;}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
-.bs-handle{width:36px;height:4px;background:var(--stone2);border-radius:2px;margin:10px auto 0;}
-.bs-hdr{padding:12px 18px 10px;border-bottom:1px solid var(--stone2);display:flex;justify-content:space-between;align-items:center;}
+.bs-handle{width:36px;height:4px;background:var(--stone2);border-radius:2px;margin:10px auto 0;flex-shrink:0;}
+.bs-hdr{padding:12px 18px 10px;border-bottom:1px solid var(--stone2);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
 .bs-hdr h4{font-family:'Cinzel Decorative',serif;font-size:.88rem;letter-spacing:2px;color:var(--fire3);}
-.bs-body{padding:14px 18px;max-height:75vh;overflow-y:auto;}
+.bs-body{padding:14px 18px;overflow-y:auto;flex:1 1 auto;min-height:0;}
+.bs-footer{padding:12px 18px 20px;border-top:1px solid var(--stone2);flex-shrink:0;background:linear-gradient(175deg,#1a0a02,#0A0400);}
 .bs-section{margin-bottom:14px;}
 .bs-label{font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--ash);margin-bottom:7px;font-weight:700;}
 /* 2×2 grid for scorer/conceder */
@@ -923,6 +925,11 @@ service cloud.firestore {
         <button class="btn btn-fire" style="width:100%;justify-content:center;" onclick="bsConfirm()">✓ Log Point</button>
       </div>
 
+    </div>
+
+    <!-- ✅ FIX: Confirm button pinned outside scroll area — always visible -->
+    <div class="bs-footer" id="bs-footer-confirm">
+      <button class="btn btn-fire" style="width:100%;justify-content:center;font-size:1rem;padding:14px;" onclick="bsConfirm()">✓ Log Point</button>
     </div>
   </div>
 </div>
@@ -2092,14 +2099,11 @@ function bsSelectReason(code){
 // Auto-confirm: fire when both scorer and conceder are selected
 // (unless no selection made - then user must tap confirm manually)
 function bsAutoConfirmIfReady(){
-  if(BS.scorerId && BS.concederId){
-    // Small delay for visual feedback, then auto-log
-    setTimeout(bsConfirm, 120);
-  }
+  // Auto-confirm disabled — user must tap the Log Point button for clarity
 }
 
 function bsConfirm(){
-  if(!BS.scorerId || !BS.concederId){ toast('Select scorer & conceder!'); return; }
+  if(!BS.scorerId && !BS.concederId){ toast('Select scorer or conceder first'); return; }
   closePointSheet();
   bsCommitPoint();
 }
