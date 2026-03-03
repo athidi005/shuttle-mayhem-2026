@@ -3868,7 +3868,7 @@ function refreshStats(){
 
   // ── Achievements shelf ──
   const achvs=computeAchievements(pStats);
-  let html=`<div class="sh"><h2 style="font-size:1rem">🏅 Achievements</h2></div>
+  html+=`<div class="sh"><h2 style="font-size:1rem">🏅 Achievements</h2></div>
   <div class="achv-shelf">`;
   achvs.forEach(a=>{
     const dim=!a.holder;
