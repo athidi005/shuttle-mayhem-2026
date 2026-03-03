@@ -1443,9 +1443,12 @@ service cloud.firestore {
     </div>
     <div class="mpanel active" id="mp-share">
       <div class="sbigg" id="modal-sid" onclick="copySessionId()" title="Tap to copy">—</div>
-      <p class="mhint">Share this ID. Any organiser can open the app, enter the ID, and score live in real time. Changes sync instantly.</p>
-      <div class="smethod" onclick="copySessionId()"><span>📋</span><div><strong>Copy Session ID</strong><span>Paste in WhatsApp or SMS</span></div></div>
-      <div class="smethod" onclick="shareLink()"><span>📨</span><div><strong>Share Direct Link</strong><span>Opens your phone's share sheet</span></div></div>
+      <p class="mhint">Share this Session ID or the direct link. Anyone who opens the link will <strong>automatically join</strong> your tournament — no manual entry needed.</p>
+      <div class="smethod" onclick="shareLink()"><span>🔗</span><div><strong>Share Direct Link</strong><span>Best option — opens your phone's share sheet with the full joinable link</span></div></div>
+      <div class="smethod" onclick="copySessionId()"><span>📋</span><div><strong>Copy Session ID only</strong><span>Others can enter this code manually in the Join tab</span></div></div>
+      <div id="share-note" style="margin-top:8px;padding:8px 10px;background:rgba(0,212,170,.07);border:1px solid rgba(0,212,170,.2);border-radius:6px;font-size:.72rem;color:var(--ash)">
+        🌐 <strong style="color:var(--teal)">For real-time sync across devices:</strong> configure Firebase (see setup notes at top of file). Without Firebase, only the device that scored can see changes.
+      </div>
       <div class="fb-status" id="fb-status-bar" style="margin-top:10px">
         <div class="sync-dot" id="modal-sync-dot"></div>
         <span id="fb-status-text">Checking sync…</span>
@@ -1621,6 +1624,15 @@ function saveLocal(){
     localStorage.setItem(lsKey(S.sessionId), JSON.stringify(S));
     // Keep history index in sync
     if(typeof histAddCurrentToIndex==='function') histAddCurrentToIndex();
+    // Always keep the URL in sync so the page link is shareable
+    const _sid = S.sessionId || SID;
+    if(_sid && window.history){
+      const _u = new URL(window.location);
+      if(_u.searchParams.get('session') !== _sid){
+        _u.searchParams.set('session', _sid);
+        window.history.replaceState({}, '', _u.toString());
+      }
+    }
   }catch(e){ console.warn('localStorage save failed',e); }
 }
 
@@ -1734,9 +1746,29 @@ async function init(){
   const storedSid = localStorage.getItem('sm26v2_sid');
 
   if(urlSid){
-    const loaded = await loadFB(urlSid.toUpperCase()) || loadLocal(urlSid.toUpperCase());
-    if(loaded){ SID=S.sessionId; toast('Joined session '+SID+' ✓'); }
-    else{ newSession(); }
+    const sid = urlSid.toUpperCase();
+    const loaded = await loadFB(sid) || loadLocal(sid);
+    if(loaded){
+      SID = S.sessionId;
+      toast('✅ Joined session ' + SID);
+    } else {
+      // Session not found - could be Firebase not configured
+      newSession();
+      if(FB_ENABLED){
+        toast('⚠️ Session ' + sid + ' not found — started new session');
+      } else {
+        // Show a helpful inline banner
+        setTimeout(()=>{
+          const banner = document.createElement('div');
+          banner.style.cssText = 'position:fixed;top:70px;left:0;right:0;z-index:9999;background:#1a1000;border-bottom:2px solid #FFB74D;padding:10px 16px;font-size:.82rem;color:#FFB74D;display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
+          banner.innerHTML = `⚠️ <strong>Session "${sid}" not found on this device.</strong> Firebase is needed for cross-device sharing. 
+            <a href="https://docs.shuttle-mayhem.app" style="color:var(--teal);text-decoration:underline" onclick="this.parentElement.remove()">Learn more</a>
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#888;cursor:pointer;margin-left:auto;font-size:1rem">✕</button>`;
+          document.body.appendChild(banner);
+          setTimeout(()=>banner.remove(), 8000);
+        }, 600);
+      }
+    }
   } else if(storedSid){
     const loaded = loadLocal(storedSid);
     if(loaded){ SID=S.sessionId; toast('Session restored'); }
@@ -2483,29 +2515,55 @@ let ENTRY_SETS = [{a:'',b:''}];
 // ═══════════════════════════════════════════════════════════════
 
 function updateHomeBanner(){
+  const sid = SID || S.sessionId || '';
   const el = document.getElementById('home-session-code');
-  if(el) el.textContent = SID || '—';
+  if(el) el.textContent = sid || '—';
+  // Also update the URL bar passively
+  if(sid){
+    try{
+      const u = new URL(window.location);
+      if(u.searchParams.get('session') !== sid){
+        u.searchParams.set('session', sid);
+        window.history.replaceState({}, '', u.toString());
+      }
+    }catch(e){}
+  }
 }
 
 function copySessionCode(){
-  if(!SID) return;
-  const url = window.location.origin + window.location.pathname + '?session=' + SID;
+  const sid = SID || S.sessionId;
+  if(!sid){ toast('No active session yet'); return; }
+  const url = window.location.origin + window.location.pathname + '?session=' + sid;
+  const copyText = url;
   if(navigator.clipboard){
-    navigator.clipboard.writeText(url).then(()=>toast('Link copied! 📋'));
+    navigator.clipboard.writeText(copyText).then(()=>{
+      toast('Link copied! Share it to invite others 📋');
+    }).catch(()=>fallbackCopy(copyText));
   } else {
-    const ta = document.createElement('textarea');
-    ta.value = url; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    toast('Link copied! 📋');
+    fallbackCopy(copyText);
   }
   const btn = document.getElementById('home-copy-btn');
-  if(btn){ btn.textContent='✅ Copied!'; setTimeout(()=>{ btn.textContent='📋 Copy'; },2000); }
+  if(btn){ btn.textContent='✅ Copied!'; setTimeout(()=>{ btn.textContent='📋 Copy'; },2500); }
+}
+
+function fallbackCopy(text){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('Link copied! 📋');
+  }catch(e){ toast('Copy failed — share the URL manually'); }
 }
 
 function shareSessionLink(){
-  const url = window.location.origin + window.location.pathname + '?session=' + SID;
+  const sid = SID || S.sessionId;
+  if(!sid){ toast('No active session yet'); return; }
+  const url = window.location.origin + window.location.pathname + '?session=' + sid;
+  const text = '🏸 Join our Shuttle Mayhem tournament!\nTap the link to score and follow live results.\n' + url;
   if(navigator.share){
-    navigator.share({ title:'Shuttle Mayhem – Join Tournament', url });
+    navigator.share({ title:'Shuttle Mayhem – Join Tournament', text, url }).catch(()=>copySessionCode());
   } else {
     copySessionCode();
   }
@@ -3237,12 +3295,12 @@ function renderBonusInfo(ms){
     ${gName('B')}: <strong style="color:var(--blue)">${ms.matchPointsB||0}</strong> pts
     <span style="color:var(--ash);font-size:.78rem;margin-left:6px">(Bonus: +${b})</span>
   </div>
-  <div class="bonus-input-row" id="bonus-input-row-${ms.winner}">
-    <span style="font-size:.78rem;color:var(--ash)">Loser's score: <strong style="color:var(--cream)">${loser}</strong> &nbsp;·&nbsp; Set bonus manually:</span>
+  <div class="bonus-input-row">
+    <span style="font-size:.78rem;color:var(--ash)">Loser score: <strong style="color:var(--cream)">${loser}</strong> &nbsp;·&nbsp; Set bonus:</span>
     <div style="display:flex;gap:6px;margin-top:6px">
-      <button class="bonus-chip ${b===0?'active':''}" onclick="applyBonusChip(this, '${ms.winner==='A'?S.fixtures.find(x=>x.matchState===ms)?.id||'':''}', 0)">+0 pts</button>
-      <button class="bonus-chip ${b===1?'active':''}" onclick="applyBonusChip(this, '', 1)">+1 bonus</button>
-      <button class="bonus-chip ${b===2?'active':''}" onclick="applyBonusChip(this, '', 2)">+2 bonus</button>
+      <button class="bonus-chip ${b===0?'active':''}" onclick="setMatchBonus(0)">+0 pts</button>
+      <button class="bonus-chip ${b===1?'active':''}" onclick="setMatchBonus(1)">+1 bonus</button>
+      <button class="bonus-chip ${b===2?'active':''}" onclick="setMatchBonus(2)">+2 bonus</button>
     </div>
   </div>`;
 }
@@ -3894,9 +3952,9 @@ function refreshStats(){
       <td style="font-weight:700;color:var(--green)">${p.matchesWon}</td>
       <td style="color:var(--fire3);font-family:'JetBrains Mono',monospace">${p.pointsScored}</td>
       <td style="color:#EF5350;font-family:'JetBrains Mono',monospace">${p.pointsConceded}</td>
-      ${isQuick?'':('<td style="color:var(--gold);font-family:'JetBrains Mono',monospace">'+(p.winners||0)+'</td>')}
-      ${isQuick?'':('<td style="color:var(--gold);font-family:'JetBrains Mono',monospace">'+(p.clutch20||0)+'</td>')}
-      ${isQuick?'':('<td style="color:var(--green);font-family:'JetBrains Mono',monospace">'+(p.maxStreak||0)+'</td>')}
+      ${isQuick?"":(`<td style="color:var(--gold);font-family:'JetBrains Mono',monospace">${p.winners||0}</td>`)}
+      ${isQuick?"":(`<td style="color:var(--gold);font-family:'JetBrains Mono',monospace">${p.clutch20||0}</td>`)}
+      ${isQuick?"":(`<td style="color:var(--green);font-family:'JetBrains Mono',monospace">${p.maxStreak||0}</td>`)}
       <td><span class="pts-b">${p.ppi}</span></td>
       <td><button class="btn btn-ghost btn-xs" onclick="showPlayerDetail('${p.id}')">Detail</button></td>
     </tr>`;
