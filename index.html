@@ -26,13 +26,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0D1117">
+<meta name="format-detection" content="telephone=no">
+<script>
+/* ── POLYFILLS for iOS 9 / Safari 9 / Android 4 ── */
+/* URLSearchParams */
+if(typeof URLSearchParams==='undefined'){window.URLSearchParams=function(q){var pairs=((q||'').replace(/^\?/,'')).split('&'),map={};pairs.forEach(function(p){var kv=p.split('=');if(kv[0])map[decodeURIComponent(kv[0])]=decodeURIComponent(kv[1]||'');});this.get=function(k){return map.hasOwnProperty(k)?map[k]:null;};this.set=function(k,v){map[k]=String(v);};this.toString=function(){return Object.keys(map).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(map[k]);}).join('&');};};};
+/* Safe URL wrapper */
+window._SafeURL=function(href){var a=document.createElement('a');a.href=href;var sp=new URLSearchParams(a.search);this.searchParams=sp;this.toString=function(){var s=sp.toString();return a.protocol+'//'+a.host+a.pathname+(s?'?'+s:'');};};
+/* Element.closest */
+if(!Element.prototype.closest){Element.prototype.closest=function(s){var el=this;while(el&&el.nodeType===1){if(el.matches?el.matches(s):el.msMatchesSelector(s))return el;el=el.parentElement;}return null;};}
+/* NodeList.forEach */
+if(typeof NodeList!=='undefined'&&NodeList.prototype&&!NodeList.prototype.forEach){NodeList.prototype.forEach=Array.prototype.forEach;}
+/* Object.assign */
+if(!Object.assign){Object.assign=function(t){for(var i=1;i<arguments.length;i++){var s=arguments[i];for(var k in s){if(Object.prototype.hasOwnProperty.call(s,k))t[k]=s[k];}}return t;};}
+/* Array.from */
+if(!Array.from){Array.from=function(a,fn){var arr=Array.prototype.slice.call(a);return fn?arr.map(fn):arr;};}
+/* String.includes */
+if(!String.prototype.includes){String.prototype.includes=function(s,p){return this.indexOf(s,p)!==-1;};}
+/* Array.prototype.flat */
+if(!Array.prototype.flat){Array.prototype.flat=function(d){d=d===undefined?1:d;return d>0?this.reduce(function(a,v){return a.concat(Array.isArray(v)?v.flat(d-1):v);},[]):this.slice();};}
+/* Array.prototype.flatMap */
+if(!Array.prototype.flatMap){Array.prototype.flatMap=function(fn){return Array.prototype.flat.call(Array.prototype.map.call(this,fn));};}
+/* clipboard shim */
+if(!navigator.clipboard){navigator.clipboard={writeText:function(text){try{var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0;top:0;left:0;';document.body.appendChild(ta);ta.focus();ta.select();var ok=document.execCommand('copy');document.body.removeChild(ta);return ok?Promise.resolve():Promise.reject(new Error('copy failed'));}catch(e){return Promise.reject(e);}}};}
+/* share shim */
+if(!navigator.share){navigator.share=function(d){return navigator.clipboard.writeText(((d.text||'')+' '+(d.url||'')).trim());};}
+/* Promise (very basic, only if totally missing) */
+if(typeof Promise==='undefined'){/* load from CDN fallback */var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js';document.head.appendChild(s);}
+</script>
 <title>Shuttle Mayhem 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<!-- Firebase 8.x — compatible with iOS 9+ and Android 4+ -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -68,6 +98,7 @@ body::before{content:'';position:fixed;inset:0;
 
 /* ─────────── HEADER ─────────── */
 header{background:linear-gradient(135deg,var(--dark2),var(--dark3));border-bottom:2px solid var(--teal);
+  position:-webkit-sticky;
   position:sticky;top:0;z-index:300;box-shadow:0 4px 24px rgba(0,212,170,.2);}
 .hdr{max-width:980px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px;}
 .logo-svg{width:44px;height:44px;flex-shrink:0;filter:var(--gf);}
@@ -94,7 +125,8 @@ header{background:linear-gradient(135deg,var(--dark2),var(--dark3));border-botto
 
 /* ─────────── NAV ─────────── */
 .nav{background:rgba(13,17,23,.98);border-bottom:1px solid rgba(0,212,170,.18);
-  display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:64px;z-index:299;}
+  display:flex;overflow-x:auto;scrollbar-width:none;position:-webkit-sticky;
+  position:sticky;top:64px;z-index:299;}
 .nav::-webkit-scrollbar{display:none;}
 .ntab{flex-shrink:0;padding:9px 13px;background:none;border:none;border-bottom:3px solid transparent;
   color:var(--ash);font-family:'Outfit',sans-serif;font-weight:600;font-size:.72rem;
@@ -126,7 +158,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .goldbox{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-left:3px solid var(--gold);
   border-radius:0 7px 7px 0;padding:11px 14px;font-size:.83rem;color:var(--sand);line-height:1.6;margin-bottom:12px;}
 .goldbox strong{color:var(--gold);}
-.card{background:rgba(22,27,34,.88);border:1px solid var(--stone2);border-radius:9px;padding:16px;backdrop-filter:blur(3px);}
+.card{background:rgba(22,27,34,.88);border:1px solid var(--stone2);border-radius:9px;padding:16px;-webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);}
 .card.fb{border-top:2px solid var(--teal);}
 .card.gb{border-top:2px solid var(--gold);}
 
@@ -202,7 +235,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .tag-court{background:rgba(96,165,250,.1);color:var(--blue);cursor:pointer;}
 .tag-court:hover{background:rgba(96,165,250,.2);}
 
-.fbody{padding:11px 13px;display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;gap:5px;}
+.fbody{padding:11px 13px;display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;gap:5px;}
 .tside{display:flex;flex-direction:column;gap:2px;}
 .tside.r{align-items:flex-end;text-align:right;}
 .tgrp-tag{font-size:.62rem;font-weight:700;letter-spacing:1px;padding:1px 6px;border-radius:3px;display:inline-block;}
@@ -251,7 +285,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 /* ─────────── LIVE SCORING MODAL ─────────── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;
   display:flex;align-items:flex-start;justify-content:center;
-  padding:10px;overflow-y:auto;backdrop-filter:blur(6px);}
+  padding:10px;overflow-y:auto;-webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);}
 .modal-overlay.hid{display:none;}
 .modal{background:linear-gradient(160deg,var(--dark2),var(--dark3));border:2px solid var(--teal);
   border-radius:11px;width:100%;max-width:540px;padding:0;overflow:hidden;
@@ -284,7 +319,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 /* Point popup */
 .pp-section{margin-bottom:14px;}
 .pp-label{font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--ash);margin-bottom:6px;font-weight:700;}
-.pp-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.pp-grid{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr;gap:7px;}
 .pp-btn{
   padding:9px 8px;border:1.5px solid var(--stone2);border-radius:6px;background:rgba(255,255,255,.03);
   color:var(--sand);font-family:'Outfit',sans-serif;font-weight:600;font-size:.83rem;
@@ -314,7 +350,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .tl-undo:hover{color:var(--fire2);}
 
 /* ─────────── STANDINGS ─────────── */
-.team-totals{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.team-totals{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
 .team-card{background:rgba(22,27,34,.88);border:1px solid var(--stone2);border-radius:9px;padding:16px;text-align:center;}
 .team-card.a{border-top:3px solid var(--fire1);}
 .team-card.b{border-top:3px solid var(--blue);}
@@ -342,7 +379,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .dn{color:#EF5350;font-family:'JetBrains Mono',monospace;}
 
 /* ─────────── STATS / PPI ─────────── */
-.ppi-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px;}
+.ppi-cards{display:-webkit-grid;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px;}
 .ppi-card{background:rgba(22,27,34,.88);border:1px solid var(--stone2);border-radius:9px;padding:14px;text-align:center;}
 .ppi-card h4{font-family:'Playfair Display',serif;font-size:.78rem;color:var(--fire3);letter-spacing:2px;margin-bottom:6px;}
 .ppi-name{font-size:1.1rem;font-weight:700;color:var(--cream);margin-bottom:3px;}
@@ -390,7 +428,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .rh-div{width:50px;height:2px;background:linear-gradient(90deg,transparent,var(--fire1),transparent);margin:9px auto;}
 .rh-det{color:var(--sand);font-size:.88rem;margin:3px 0;}
 .rh-det strong{color:var(--fire3);}
-.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-bottom:14px;}
+.rgrid{display:-webkit-grid;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-bottom:14px;}
 .rcard{background:rgba(20,10,2,.8);border:1px solid var(--stone2);border-radius:8px;padding:13px;transition:border-color .2s;}
 .rcard:hover{border-color:var(--teal);}
 .rcard h4{font-family:'Playfair Display',serif;font-size:.76rem;letter-spacing:2px;color:var(--fire3);margin-bottom:7px;}
@@ -434,6 +473,7 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 /* ─────────── POINT DETAIL BOTTOM SHEET ─────────── */
 .bs-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;
   display:flex;align-items:flex-end;justify-content:center;
+  -webkit-backdrop-filter:blur(4px);
   backdrop-filter:blur(4px);}
 .bs-overlay.hid{display:none;}
 .bs-sheet{background:linear-gradient(175deg,var(--dark2),var(--dark3));border:2px solid var(--teal);
@@ -447,7 +487,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .bs-section{margin-bottom:14px;}
 .bs-label{font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--ash);margin-bottom:7px;font-weight:700;}
 /* 2×2 grid for scorer/conceder */
-.bs-pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.bs-pair-grid{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .bs-player-btn{padding:12px 8px;border:2px solid var(--stone2);border-radius:8px;
   background:rgba(255,255,255,.03);color:var(--sand);font-family:'Outfit',sans-serif;
   font-weight:700;font-size:.9rem;cursor:pointer;transition:all .13s;text-align:center;
@@ -459,7 +500,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .bs-player-btn:disabled{opacity:.35;cursor:not-allowed;}
 
 /* Turbo combo buttons */
-.turbo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.turbo-grid{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .turbo-btn{padding:14px 8px;border:2px solid var(--stone2);border-radius:8px;
   background:rgba(255,255,255,.03);color:var(--sand);font-family:'Outfit',sans-serif;
   font-weight:700;font-size:.82rem;cursor:pointer;transition:all .13s;text-align:center;
@@ -478,10 +520,12 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .sb-server-wrap{text-align:center;margin-top:4px;}
 
 /* Server override modal (small) */
-.srv-override-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+.srv-override-grid{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
 
 /* Reason chips in bottom sheet */
-.bs-reason-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.bs-reason-grid{display:-webkit-grid;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
 .bs-reason-btn{padding:8px 5px;border:1.5px solid var(--stone2);border-radius:6px;
   background:rgba(255,255,255,.03);color:var(--ash);font-family:'Outfit',sans-serif;
   font-weight:600;font-size:.78rem;cursor:pointer;transition:all .13s;text-align:center;
@@ -563,7 +607,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 
 
 /* ─────────── SCORING MODE SELECTOR ─────────── */
-.scoring-modes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.scoring-modes{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
 .sm-btn{padding:12px 8px;border:2px solid var(--stone2);border-radius:9px;
   background:rgba(255,255,255,.03);color:var(--ash);cursor:pointer;transition:all .18s;text-align:center;
   font-family:'Outfit',sans-serif;}
@@ -595,7 +640,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 /* Custom fixture creator */
 .custom-fixture-form{background:rgba(22,27,34,.9);border:1px solid var(--stone2);border-radius:8px;padding:14px;margin-bottom:12px;}
 .custom-fixture-form h4{font-size:.82rem;font-weight:700;color:var(--teal);margin-bottom:10px;letter-spacing:.5px;}
-.cf-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px;}
+.cf-row{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px;}
 .cf-vs{color:var(--ash);font-weight:700;text-align:center;font-size:.88rem;}
 .cf-player-sel{background:rgba(255,255,255,.05);border:1px solid var(--stone2);border-radius:5px;
   color:var(--cream);font-family:'Outfit',sans-serif;font-size:.82rem;padding:6px 8px;outline:none;width:100%;}
@@ -616,7 +662,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .ssb-actions{display:flex;gap:6px;margin-left:auto;}
 
 /* Score entry mode */
-.score-entry-form{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:10px 0;}
+.score-entry-form{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:10px 0;}
 .score-entry-input{background:rgba(255,255,255,.07);border:2px solid var(--stone2);border-radius:8px;
   color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;
   padding:12px 8px;outline:none;text-align:center;width:100%;}
@@ -624,7 +671,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .score-entry-vs{color:var(--ash);font-size:1.2rem;font-weight:700;text-align:center;}
 
 /* Starting positions grid */
-.position-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.position-grid{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
 .pos-card{border:2px solid var(--stone2);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all .15s;background:rgba(255,255,255,.03);}
 .pos-card:hover{border-color:var(--teal);}
 .pos-card.selected-a{border-color:var(--teal);background:rgba(0,212,170,.1);}
@@ -633,7 +681,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 .pos-name{font-size:.9rem;font-weight:700;color:var(--cream);}
 
 /* Quick score buttons (only team, no player) */
-.quick-team-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0;}
+.quick-team-btns{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0;}
 .quick-team-btn{padding:22px 12px;border:2.5px solid var(--stone2);border-radius:10px;
   background:rgba(255,255,255,.04);cursor:pointer;transition:all .14s;text-align:center;
   font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;
@@ -671,7 +720,8 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
   border-radius:10px;padding:14px 16px;margin-bottom:14px;}
 .tournament-mode-card h4{font-size:.78rem;font-weight:700;letter-spacing:.5px;
   color:var(--teal);text-transform:uppercase;margin-bottom:10px;}
-.tmode-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.tmode-grid{display:-webkit-grid;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 .tmode-btn{padding:10px 6px;border:2px solid var(--stone2);border-radius:8px;
   background:rgba(255,255,255,.03);cursor:pointer;transition:all .18s;text-align:center;
   font-family:'Outfit',sans-serif;}
@@ -690,6 +740,20 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
 /* Stats page mode-aware sections */
 .stats-section{display:none;}
 .stats-section.visible{display:block;}
+
+/* ─── iOS / Android compatibility additions ─── */
+*{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+input,textarea,select{-webkit-appearance:none;border-radius:0;}
+button{-webkit-appearance:none;cursor:pointer;}
+.page,.modal-inner,.bottom-sheet-inner{-webkit-overflow-scrolling:touch;overflow-y:auto;}
+/* Fallback for CSS variables on very old browsers */
+.btn{background-color:#00D4AA;}
+.btn-ghost{background-color:transparent;}
+/* Flexbox legacy prefixes */
+.nav{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-wrap:wrap;flex-wrap:wrap;}
+.btn-row{display:-webkit-box;display:-webkit-flex;display:flex;}
+/* Fix for iOS tap delay */
+a,button,[onclick]{touch-action:manipulation;}
 </style>
 </head>
 <body>
@@ -1051,7 +1115,7 @@ main{max-width:980px;margin:0 auto;padding:18px 13px 90px;position:relative;z-in
         <strong>Firebase Real-Time Sync (for multi-device scoring):</strong><br>
         1. <a href="https://console.firebase.google.com" target="_blank" style="color:var(--fire3)">console.firebase.google.com</a> → Create project → Add Web App<br>
         2. Copy the <code style="color:var(--gold)">firebaseConfig</code> object<br>
-        3. In this HTML file find <code style="color:var(--gold)">const FIREBASE_CONFIG = {</code> and paste your keys<br>
+        3. In this HTML file find <code style="color:var(--gold)">const FIREBASE_CONFIG = {   apiKey: "AIzaSyDSgXhl-MNFvIfbyGFsu4rfmTzNqYPXnLo",   authDomain: "shuttlemayhem.firebaseapp.com",   projectId: "shuttlemayhem",   storageBucket: "shuttlemayhem.firebasestorage.app",   messagingSenderId: "469835811009",   appId: "1:469835811009:web:b735e0a9fb5e6154eaac40",   measurementId: "G-EG7FCVT05N" }</code> and paste your keys<br>
         4. Firestore → Create database (test mode) → paste Firestore rules below<br>
         5. Multiple organizers join via the same Session ID — all edits sync live<br><br>
         <strong>Firestore Security Rules:</strong><br>
@@ -1627,7 +1691,7 @@ function saveLocal(){
     // Always keep the URL in sync so the page link is shareable
     const _sid = S.sessionId || SID;
     if(_sid && window.history){
-      const _u = new URL(window.location);
+      const _u = _SafeURL(window.location.href);
       if(_u.searchParams.get('session') !== _sid){
         _u.searchParams.set('session', _sid);
         window.history.replaceState({}, '', _u.toString());
@@ -1644,27 +1708,27 @@ function loadLocal(sid){
   return false;
 }
 
-async function saveFB(){
-  if(!FB_ENABLED||!db) return;
+function saveFB(){
+  if(!FB_ENABLED||!db){ return Promise.resolve(); }
   setSyncDot('syncing');
-  try{
-    const ref = db.collection('sessions').doc(S.sessionId);
-    await ref.set(S, {merge:true});
-    setSyncDot('ok');
-  }catch(e){
-    setSyncDot('offline');
-    OFFLINE_QUEUE.push({...S});
-    console.warn('Firebase save failed, queued',e);
-  }
+  var _snap = JSON.parse(JSON.stringify(S));
+  return db.collection('sessions').doc(S.sessionId).set(_snap,{merge:true})
+    .then(function(){ setSyncDot('ok'); })
+    .catch(function(e){
+      setSyncDot('offline');
+      OFFLINE_QUEUE.push(_snap);
+      console.warn('Firebase save failed, queued',e);
+    });
 }
 
-async function loadFB(sid){
-  if(!FB_ENABLED||!db) return false;
-  try{
-    const doc = await db.collection('sessions').doc(sid).get();
-    if(doc.exists){ S=doc.data(); return true; }
-  }catch(e){ console.warn('Firebase load failed',e); }
-  return false;
+function loadFB(sid){
+  if(!FB_ENABLED||!db){ return Promise.resolve(false); }
+  return db.collection('sessions').doc(sid).get()
+    .then(function(doc){
+      if(doc.exists){ S=doc.data(); return true; }
+      return false;
+    })
+    .catch(function(e){ console.warn('Firebase load failed',e); return false; });
 }
 
 function subscribeSession(sid){
@@ -1684,37 +1748,36 @@ function subscribeSession(sid){
 }
 
 // Append a single point event atomically to Firestore
-async function appendPointFB(matchId, event){
-  if(!FB_ENABLED||!db){ saveLocal(); return; }
-  try{
-    setSyncDot('syncing');
-    const ref = db.collection('sessions').doc(SID)
-                  .collection('matches').doc(matchId)
-                  .collection('events').doc(event.ts.toString());
-    await ref.set(event);
-    setSyncDot('ok');
-    // Also update parent session doc match state
-    await saveFB();
-  }catch(e){
-    setSyncDot('offline');
-    OFFLINE_QUEUE.push({type:'event', matchId, event});
-    saveLocal();
-  }
+function appendPointFB(matchId, event){
+  if(!FB_ENABLED||!db){ saveLocal(); return Promise.resolve(); }
+  setSyncDot('syncing');
+  var ref=db.collection('sessions').doc(SID)
+            .collection('matches').doc(matchId)
+            .collection('events').doc(String(event.ts));
+  return ref.set(event)
+    .then(function(){ setSyncDot('ok'); return saveFB(); })
+    .catch(function(e){
+      setSyncDot('offline');
+      OFFLINE_QUEUE.push({type:'event',matchId:matchId,event:event});
+      saveLocal();
+    });
 }
 
-async function flushOfflineQueue(){
-  if(!FB_ENABLED||!db||OFFLINE_QUEUE.length===0) return;
-  const q=[...OFFLINE_QUEUE]; OFFLINE_QUEUE=[];
-  for(const item of q){
-    try{
-      if(item.sessionId){ await db.collection('sessions').doc(item.sessionId).set(item,{merge:true}); }
-      else if(item.type==='event'){
-        const ref=db.collection('sessions').doc(SID).collection('matches').doc(item.matchId).collection('events').doc(item.event.ts.toString());
-        await ref.set(item.event);
+function flushOfflineQueue(){
+  if(!FB_ENABLED||!db||OFFLINE_QUEUE.length===0){ return Promise.resolve(); }
+  var q=OFFLINE_QUEUE.slice(); OFFLINE_QUEUE=[];
+  var chain=Promise.resolve();
+  q.forEach(function(item){
+    chain=chain.then(function(){
+      if(item.sessionId){
+        return db.collection('sessions').doc(item.sessionId).set(item,{merge:true}).catch(function(e){OFFLINE_QUEUE.push(item);});
+      } else if(item.type==='event'){
+        var ref=db.collection('sessions').doc(SID).collection('matches').doc(item.matchId).collection('events').doc(String(item.event.ts));
+        return ref.set(item.event).catch(function(e){OFFLINE_QUEUE.push(item);});
       }
-    }catch(e){ OFFLINE_QUEUE.push(item); }
-  }
-  if(OFFLINE_QUEUE.length===0) setSyncDot('ok');
+    });
+  });
+  return chain.then(function(){ if(OFFLINE_QUEUE.length===0) setSyncDot('ok'); });
 }
 
 window.addEventListener('online', ()=>{ ONLINE=true; flushOfflineQueue(); });
@@ -1723,15 +1786,17 @@ window.addEventListener('offline', ()=>{ ONLINE=false; setSyncDot('offline'); })
 // ═══════════════════════════════════════════════════════════
 // ⑤ INIT
 // ═══════════════════════════════════════════════════════════
-async function init(){
+function init(){
   // Init Firebase if configured
+  var fbInitPromise = Promise.resolve();
   if(FB_ENABLED){
     try{
       firebase.initializeApp(FIREBASE_CONFIG);
       db = firebase.firestore();
       auth = firebase.auth();
-      await auth.signInAnonymously();
-      setFBModeLabel('Firebase (real-time)');
+      fbInitPromise = auth.signInAnonymously()
+        .then(function(){ setFBModeLabel('Firebase (real-time)'); })
+        .catch(function(e){ console.warn('Firebase auth failed',e); });
     }catch(e){
       console.warn('Firebase init failed, falling back to localStorage',e);
     }
@@ -1739,52 +1804,63 @@ async function init(){
     setFBModeLabel('localStorage only');
   }
 
-  buildRows('A'); buildRows('B');
+  fbInitPromise.then(function(){
+    buildRows('A'); buildRows('B');
 
-  // URL session param
-  const urlSid = new URLSearchParams(window.location.search).get('session');
-  const storedSid = localStorage.getItem('sm26v2_sid');
+    // URL session param
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlSid = urlParams.get('session');
+    var storedSid = localStorage.getItem('sm26v2_sid');
 
-  if(urlSid){
-    const sid = urlSid.toUpperCase();
-    const loaded = await loadFB(sid) || loadLocal(sid);
-    if(loaded){
-      SID = S.sessionId;
-      toast('✅ Joined session ' + SID);
-    } else {
-      // Session not found - could be Firebase not configured
-      newSession();
-      if(FB_ENABLED){
-        toast('⚠️ Session ' + sid + ' not found — started new session');
-      } else {
-        // Show a helpful inline banner
-        setTimeout(()=>{
-          const banner = document.createElement('div');
-          banner.style.cssText = 'position:fixed;top:70px;left:0;right:0;z-index:9999;background:#1a1000;border-bottom:2px solid #FFB74D;padding:10px 16px;font-size:.82rem;color:#FFB74D;display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
-          banner.innerHTML = `⚠️ <strong>Session "${sid}" not found on this device.</strong> Firebase is needed for cross-device sharing. 
-            <a href="https://docs.shuttle-mayhem.app" style="color:var(--teal);text-decoration:underline" onclick="this.parentElement.remove()">Learn more</a>
-            <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#888;cursor:pointer;margin-left:auto;font-size:1rem">✕</button>`;
-          document.body.appendChild(banner);
-          setTimeout(()=>banner.remove(), 8000);
-        }, 600);
-      }
+    function finishInit(){
+      subscribeSession(SID);
+      updateSidUI();
+      restoreUI();
+      checkMigration();
+      updateHomeBanner();
+      updateBrowserURL();
     }
-  } else if(storedSid){
-    const loaded = loadLocal(storedSid);
-    if(loaded){ SID=S.sessionId; toast('Session restored'); }
-    else{ newSession(); }
-    // Try syncing from Firebase too
-    if(FB_ENABLED&&db){ const fb=await loadFB(storedSid); if(fb){SID=S.sessionId;} }
-  } else {
-    newSession();
-  }
 
-  subscribeSession(SID);
-  updateSidUI();
-  restoreUI();
-  checkMigration();
-  updateHomeBanner();
-  updateBrowserURL();
+    function showSessionNotFound(sid){
+      setTimeout(function(){
+        var banner=document.createElement('div');
+        banner.style.cssText='position:fixed;top:70px;left:0;right:0;z-index:9999;background:#1a1000;border-bottom:2px solid #FFB74D;padding:10px 16px;font-size:.82rem;color:#FFB74D;';
+        banner.innerHTML='<strong>Session "'+sid+'" not found.</strong> Firebase is needed for cross-device sharing. <button onclick="this.parentElement.remove()" style="float:right;background:none;border:none;color:#888;cursor:pointer;font-size:1rem">✕</button>';
+        document.body.appendChild(banner);
+        setTimeout(function(){if(banner.parentNode)banner.remove();},8000);
+      },600);
+    }
+
+    if(urlSid){
+      var sid=urlSid.toUpperCase();
+      loadFB(sid).then(function(loaded){
+        if(!loaded) loaded=loadLocal(sid);
+        if(loaded){
+          SID=S.sessionId;
+          toast('✅ Joined session '+SID);
+        } else {
+          newSession();
+          if(!FB_ENABLED) showSessionNotFound(sid);
+          else toast('⚠️ Session '+sid+' not found — new session started');
+        }
+        finishInit();
+      }).catch(function(){
+        var loaded=loadLocal(sid);
+        if(!loaded) newSession();
+        else SID=S.sessionId;
+        finishInit();
+      });
+    } else if(storedSid){
+      var loaded=loadLocal(storedSid);
+      if(loaded){ SID=S.sessionId; }
+      else{ newSession(); }
+      loadFB(storedSid).then(function(fb){ if(fb){SID=S.sessionId; toast('Session restored');} finishInit(); })
+        .catch(function(){ toast('Session restored (offline)'); finishInit(); });
+    } else {
+      newSession();
+      finishInit();
+    }
+  });
 }
 
 function newSession(){
@@ -1929,7 +2005,7 @@ function buildRows(g){
 function readGroup(g){
   const arr=[];
   for(let rank=1;rank<=8;rank++){
-    const name=(document.getElementById(`${g}-name-${rank}`)?.value.trim()||`${g}${rank}`);
+    const _el_nr=document.getElementById(g+'-name-'+rank); const name=(_el_nr&&_el_nr.value?_el_nr.value.trim():'')||g+rank;
     arr.push({rank, name, id:`${g}${rank}`, group:g});
   }
   return arr;
@@ -2521,7 +2597,7 @@ function updateHomeBanner(){
   // Also update the URL bar passively
   if(sid){
     try{
-      const u = new URL(window.location);
+      const u = _SafeURL(window.location.href);
       if(u.searchParams.get('session') !== sid){
         u.searchParams.set('session', sid);
         window.history.replaceState({}, '', u.toString());
@@ -2572,7 +2648,7 @@ function shareSessionLink(){
 // Update the browser URL so it includes ?session=SID (for easy sharing)
 function updateBrowserURL(){
   if(!SID) return;
-  const url = new URL(window.location);
+  const url = _SafeURL(window.location.href);
   url.searchParams.set('session', SID);
   window.history.replaceState({}, '', url.toString());
 }
@@ -2896,12 +2972,12 @@ function populateCustomFixtureSelects(){
 }
 
 function addCustomFixture(){
-  const a1 = document.getElementById('cf-a1')?.value;
-  const a2 = document.getElementById('cf-a2')?.value;
-  const b1 = document.getElementById('cf-b1')?.value;
-  const b2 = document.getElementById('cf-b2')?.value;
-  const round = parseInt(document.getElementById('cf-round')?.value)||1;
-  const type = document.getElementById('cf-type')?.value||'Single';
+  const _cfa1=document.getElementById('cf-a1'); const a1=_cfa1?_cfa1.value:'';
+  const _cfa2=document.getElementById('cf-a2'); const a2=_cfa2?_cfa2.value:'';
+  const _cfb1=document.getElementById('cf-b1'); const b1=_cfb1?_cfb1.value:'';
+  const _cfb2=document.getElementById('cf-b2'); const b2=_cfb2?_cfb2.value:'';
+  const _cfround=document.getElementById('cf-round'); const round=parseInt(_cfround?_cfround.value:'')||1;
+  const _cftype=document.getElementById('cf-type'); const type=(_cftype&&_cftype.value)?_cftype.value:'Single';
   if(!a1||!a2||!b1||!b2){ toast('Select all 4 players'); return; }
   if(a1===a2){ toast('Select 2 different players for '+gName('A')); return; }
   if(b1===b2){ toast('Select 2 different players for '+gName('B')); return; }
@@ -4141,30 +4217,40 @@ function shareLink(){
   if(navigator.share) navigator.share({title:'Shuttle Mayhem 2026',text,url}).catch(()=>copySessionId());
   else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>toast('Link copied!'));
 }
-async function joinSession(){
-  const inp=document.getElementById('join-inp').value.trim().toUpperCase();
-  const err=document.getElementById('join-err');
+function joinSession(){
+  var inp=document.getElementById('join-inp').value.trim().toUpperCase();
+  var err=document.getElementById('join-err');
   if(!inp||inp.length<4){ err.textContent='Enter a valid Session ID.'; return; }
   err.textContent='';
-  const loaded=await loadFB(inp)||loadLocal(inp);
-  if(loaded){
-    SID=S.sessionId; saveLocal(); subscribeSession(SID);
-    updateSidUI(); restoreUI(); closeSessionModal(); updateHomeBanner(); updateBrowserURL(); toast('Joined session '+inp+' ✓');
-  } else {
-    err.textContent='Session not found. Ask the organiser for the direct link.';
-  }
+  toast('Looking up session…');
+  loadFB(inp).then(function(loaded){
+    if(!loaded) loaded=loadLocal(inp);
+    if(loaded){
+      SID=S.sessionId; saveLocal(); subscribeSession(SID);
+      updateSidUI(); restoreUI(); closeSessionModal(); updateHomeBanner(); updateBrowserURL(); toast('Joined session '+inp+' ✓');
+    } else {
+      err.textContent='Session not found. Ask the organiser for the direct link.';
+    }
+  }).catch(function(){
+    var loaded=loadLocal(inp);
+    if(loaded){
+      SID=S.sessionId; saveLocal(); restoreUI(); closeSessionModal(); updateHomeBanner(); toast('Joined session '+inp+' (offline)');
+    } else {
+      err.textContent='Session not found. Check the ID or use the shared link.';
+    }
+  });
 }
-async function savePasscode(){
-  const pc=document.getElementById('pc-inp').value;
-  if(!pc){ S.passcodeHash=''; }
-  else {
-    // Simple hash (for demo; use crypto in production)
-    const encoder=new TextEncoder();
-    const data=encoder.encode(pc+'_shuttle_mayhem_2026');
-    const hash=await crypto.subtle.digest('SHA-256',data);
-    S.passcodeHash=Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
-  saveLocal(); saveFB(); toast('Passcode '+(pc?'set':'cleared')+' ✓');
+function savePasscode(){
+  var pc=document.getElementById('pc-inp').value;
+  if(!pc){ S.passcodeHash=''; saveLocal(); saveFB(); toast('Passcode cleared ✓'); return; }
+  // Simple djb2 hash (works everywhere, no async needed)
+  S.passcodeHash = simpleHash(pc+'_shuttle_mayhem_2026');
+  saveLocal(); saveFB(); toast('Passcode set ✓');
+}
+function simpleHash(str){
+  var hash=5381, i=str.length;
+  while(i){ hash=((hash<<5)+hash)^str.charCodeAt(--i); }
+  return (hash>>>0).toString(16).padStart(8,'0');
 }
 document.getElementById('sess-modal').addEventListener('click',function(e){if(e.target===this)closeSessionModal();});
 document.getElementById('live-modal').addEventListener('click',function(e){if(e.target===this)closeLiveModal();});
