@@ -754,6 +754,68 @@ button{-webkit-appearance:none;cursor:pointer;}
 .btn-row{display:-webkit-box;display:-webkit-flex;display:flex;}
 /* Fix for iOS tap delay */
 a,button,[onclick]{touch-action:manipulation;}
+
+/* ─── PRESET / CUSTOM FORMAT BUILDER ─── */
+.preset-step{background:rgba(22,27,34,.9);border:1.5px solid var(--stone2);
+  border-radius:10px;padding:14px 16px;margin-bottom:12px;}
+.preset-step-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.preset-step-num{width:24px;height:24px;border-radius:50%;background:var(--teal);
+  color:#000;font-weight:900;font-size:.8rem;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;}
+.preset-bar{background:rgba(0,212,170,.05);border:1px dashed rgba(0,212,170,.25);
+  border-radius:8px;padding:10px 12px;margin-bottom:14px;}
+.preset-chip{display:inline-flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:16px;border:1.5px solid var(--teal);
+  background:rgba(0,212,170,.08);color:var(--teal);font-size:.72rem;
+  font-weight:700;cursor:pointer;transition:all .15s;}
+.preset-chip:hover{background:rgba(0,212,170,.18);}
+.preset-chip .del{color:var(--ash);font-size:.9rem;margin-left:2px;
+  padding:0 2px;cursor:pointer;}
+.preset-chip .del:hover{color:#EF5350;}
+.cf-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cf-field{display:flex;flex-direction:column;gap:4px;}
+.cf-label{font-size:.72rem;font-weight:700;color:var(--ash);
+  text-transform:uppercase;letter-spacing:.4px;}
+.cf-inp{background:var(--stone);border:1.5px solid var(--stone2);
+  border-radius:7px;color:var(--cream);padding:8px 10px;
+  font-family:'Outfit',sans-serif;font-size:.88rem;width:100%;box-sizing:border-box;}
+.cf-inp:focus{outline:none;border-color:var(--teal);}
+.round-type-row{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px;border-radius:7px;background:rgba(255,255,255,.03);
+  border:1px solid var(--stone2);margin-bottom:6px;}
+.round-type-row .rtl{font-size:.78rem;font-weight:700;color:var(--cream);}
+.rt-toggle{display:flex;gap:0;}
+.rt-btn{padding:5px 12px;border:1.5px solid var(--stone2);background:none;
+  color:var(--ash);font-size:.72rem;font-weight:700;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:all .12s;}
+.rt-btn:first-child{border-radius:6px 0 0 6px;}
+.rt-btn:last-child{border-radius:0 6px 6px 0;border-left:none;}
+.rt-btn.active{background:var(--teal);border-color:var(--teal);color:#000;}
+.pairing-round-block{margin-bottom:16px;}
+.pairing-round-title{font-size:.78rem;font-weight:700;color:var(--teal);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;}
+.pairing-match-row{display:grid;grid-template-columns:1fr auto 1fr;
+  gap:8px;align-items:center;margin-bottom:7px;}
+.pairing-select{background:var(--stone);border:1.5px solid var(--stone2);
+  border-radius:6px;color:var(--cream);padding:6px 8px;font-size:.8rem;
+  font-family:'Outfit',sans-serif;width:100%;}
+.pairing-select:focus{outline:none;border-color:var(--teal);}
+.pairing-vs{font-size:.7rem;font-weight:900;color:var(--ash);text-align:center;}
+.add-match-btn{display:flex;align-items:center;gap:5px;
+  padding:6px 12px;border:1.5px dashed var(--stone2);border-radius:7px;
+  background:none;color:var(--ash);font-size:.74rem;cursor:pointer;
+  transition:all .15s;width:100%;justify-content:center;margin-top:4px;}
+.add-match-btn:hover{border-color:var(--teal);color:var(--teal);}
+.remove-match-btn{background:none;border:none;color:var(--stone3);
+  cursor:pointer;font-size:1rem;padding:2px 4px;flex-shrink:0;}
+.remove-match-btn:hover{color:#EF5350;}
+.review-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:10px;}
+.review-table th{text-align:left;color:var(--ash);font-weight:700;
+  padding:5px 8px;border-bottom:1px solid var(--stone2);}
+.review-table td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.04);
+  color:var(--cream);}
+.review-table tr:last-child td{border-bottom:none;}
 </style>
 </head>
 <body>
@@ -1002,59 +1064,95 @@ a,button,[onclick]{touch-action:manipulation;}
 <div class="page" id="pg-fixtures">
   <div class="sh"><h2>Match Fixtures</h2><p>5 Rounds · Tap "Start Match" to score live · Auto-saves to cloud</p></div>
   
-  <!-- Fixture creation mode selection -->
+  <!-- Fixture Setup Section -->
   <div id="fixture-setup-section">
     <div class="fix-mode-tabs">
       <button class="fix-mode-tab active" id="fixtab-auto" onclick="switchFixtureMode('auto')">🤖 Auto-Generate</button>
-      <button class="fix-mode-tab" id="fixtab-custom" onclick="switchFixtureMode('custom')">✏️ Custom Fixtures</button>
+      <button class="fix-mode-tab" id="fixtab-custom" onclick="switchFixtureMode('custom')">⚙️ Custom Format</button>
     </div>
-    
-    <!-- Auto-generate panel -->
+
+    <!-- AUTO panel -->
     <div id="fixpanel-auto">
       <div class="ibox" id="fx-info">Generate fixtures by entering players in Group A and Group B.</div>
       <div class="rtabs" id="round-tabs"></div>
       <div id="rounds-container"></div>
     </div>
-    
-    <!-- Custom fixtures panel -->
+
+    <!-- CUSTOM FORMAT panel -->
     <div id="fixpanel-custom" style="display:none">
-      <div class="ibox">Create custom matches by selecting players from Group A and Group B. Each match is played between one pair from each group.</div>
-      
-      <div class="custom-fixture-form">
-        <h4>➕ Add Custom Match</h4>
-        <div class="cf-row">
-          <div>
-            <div style="font-size:.68rem;color:var(--ash);margin-bottom:3px;" id="cf-a-label">Group A Players</div>
-            <select class="cf-player-sel" id="cf-a1" style="margin-bottom:5px"></select>
-            <select class="cf-player-sel" id="cf-a2"></select>
+
+      <!-- STEP 1: Format Config -->
+      <div class="preset-step" id="custom-step-1">
+        <div class="preset-step-header">
+          <span class="preset-step-num">1</span>
+          <strong>Tournament Format</strong>
+        </div>
+
+        <!-- Preset loader -->
+        <div class="preset-bar" id="preset-bar">
+          <span style="font-size:.75rem;color:var(--ash)">📦 Saved presets:</span>
+          <div id="preset-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></div>
+          <div style="font-size:.68rem;color:var(--stone3);margin-top:4px" id="preset-none-msg">No presets saved yet. Configure below and save one.</div>
+        </div>
+
+        <div class="cf-form-grid">
+          <div class="cf-field">
+            <label class="cf-label">Number of Rounds</label>
+            <input type="number" id="cfg-rounds" min="1" max="10" value="5" class="cf-inp" oninput="updateFormatConfig()">
           </div>
-          <div class="cf-vs">VS</div>
-          <div>
-            <div style="font-size:.68rem;color:var(--ash);margin-bottom:3px;" id="cf-b-label">Group B Players</div>
-            <select class="cf-player-sel" id="cf-b1" style="margin-bottom:5px"></select>
-            <select class="cf-player-sel" id="cf-b2"></select>
+          <div class="cf-field">
+            <label class="cf-label">Number of Courts</label>
+            <input type="number" id="cfg-courts" min="1" max="10" value="3" class="cf-inp" oninput="updateFormatConfig()">
           </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
-          <select class="cf-player-sel" id="cf-round" style="width:auto">
-            <option value="1">Round 1</option><option value="2">Round 2</option>
-            <option value="3">Round 3</option><option value="4">Round 4</option>
-            <option value="5">Round 5</option>
-          </select>
-          <select class="cf-player-sel" id="cf-type" style="width:auto">
-            <option value="Single">Single Set</option>
-            <option value="BO3">Best of 3</option>
-          </select>
-          <button class="btn btn-fire btn-sm" onclick="addCustomFixture()" style="flex:1">+ Add Match</button>
+
+        <!-- Round type selector (built dynamically) -->
+        <div id="round-type-config" style="margin-top:12px">
+          <div class="cf-label" style="margin-bottom:8px">Round Format (Single Set = 1 game · Best of 3 = up to 3 games)</div>
+          <div id="round-type-grid"></div>
+        </div>
+
+        <button class="btn btn-sm" style="margin-top:12px" onclick="goToStep(2)">Next: Set Pairings →</button>
+      </div>
+
+      <!-- STEP 2: Pairings builder -->
+      <div class="preset-step" id="custom-step-2" style="display:none">
+        <div class="preset-step-header">
+          <span class="preset-step-num">2</span>
+          <strong>Choose Pairings for Each Round</strong>
+        </div>
+        <div style="font-size:.74rem;color:var(--ash);margin-bottom:10px">
+          Select which rank from Group A pairs with which rank from Group B in each match.
+          Ranks 1–8 refer to players entered in the Group pages.
+        </div>
+        <div id="pairings-builder"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="goToStep(1)">← Back</button>
+          <button class="btn btn-sm" onclick="goToStep(3)">Next: Review & Save →</button>
         </div>
       </div>
-      
-      <div id="custom-fixture-list">
-        <div class="ibox">No custom matches added yet. Use the form above to add matches.</div>
+
+      <!-- STEP 3: Review + Save as preset + Generate -->
+      <div class="preset-step" id="custom-step-3" style="display:none">
+        <div class="preset-step-header">
+          <span class="preset-step-num">3</span>
+          <strong>Review & Save Preset</strong>
+        </div>
+        <div id="format-review" style="margin-bottom:12px"></div>
+
+        <div class="cf-field" style="margin-bottom:10px">
+          <label class="cf-label">Preset Name (to reuse later)</label>
+          <input type="text" id="preset-name-inp" class="cf-inp" placeholder="e.g. Club League 5R3C" maxlength="40">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="goToStep(2)">← Back</button>
+          <button class="btn btn-sm" onclick="savePreset()" style="background:var(--gold);color:#000">💾 Save Preset</button>
+          <button class="btn btn-sm" onclick="applyCustomFormat()">✅ Generate Fixtures</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+
 
 <!-- ══════ STANDINGS ══════ -->
 <div class="page" id="pg-standings">
@@ -1658,6 +1756,7 @@ let S = {
   groupNameA: 'Group A',  // custom display name
   groupNameB: 'Group B',
   tournamentMode: 'pro',  // 'pro' | 'quick' | 'entry' — set once for whole tournament
+  customFormat: null,       // null = use defaults; set by custom format builder
 };
 
 // Helper: display name for group
@@ -2200,25 +2299,32 @@ function renderFixturesUI(){
     `<strong>Fixed fixtures</strong> · Pair A(i,j) vs B(i,j) · Click <strong>Start Match</strong> to score live.
      Real-time sync: <strong>${FB_ENABLED?'Firebase':'localStorage'}</strong>`;
 
+  // Determine round count and types (custom or default)
+  var fmt = S.customFormat || null;
+  var totalRounds = fmt ? fmt.rounds : ROUNDS;
+  var getRoundType = function(r){ return fmt ? (fmt.roundTypes[r]||'SINGLE') : (ROUND_TYPE[r]||'SINGLE'); };
+
   const tabs=document.getElementById('round-tabs'); tabs.innerHTML='';
-  for(let r=1;r<=ROUNDS;r++){
+  for(let r=1;r<=totalRounds;r++){
     const ms=S.fixtures.filter(f=>f.round===r);
     const allDone=ms.length>0&&ms.every(f=>f.status==='completed');
     const btn=document.createElement('button');
     btn.id='rtab-'+r; btn.className='rtab'+(r===1?' act':'')+(allDone?' done':'');
-    btn.innerHTML=(ROUND_TYPE[r]==='BO3'?'🏆 ':'')+'R'+r+(ROUND_TYPE[r]==='BO3'?' BO3':'');
+    const rType = getRoundType(r);
+    btn.innerHTML=(rType==='BO3'?'🏆 ':'')+'R'+r+(rType==='BO3'?' BO3':'');
     btn.onclick=(rr=>()=>showRound(rr))(r);
     tabs.appendChild(btn);
   }
 
   const cont=document.getElementById('rounds-container'); cont.innerHTML='';
-  for(let r=1;r<=ROUNDS;r++){
+  for(let r=1;r<=totalRounds;r++){
     const div=document.createElement('div'); div.id='rdiv-'+r;
     div.style.display=r===1?'block':'none';
     const matches=S.fixtures.filter(f=>f.round===r);
+    const rType = getRoundType(r);
     let html=`<div class="ibox" style="margin-bottom:10px">
-      <strong>Round ${r}</strong> — ${ROUND_TYPE[r]==='BO3'?'Best of 3 Sets':'Single Set'} · First to 21, win by 2 (max 31)
-      ${ROUND_TYPE[r]==='BO3'?'<span class="tag tag-bo3" style="margin-left:6px">BO3</span>':''}
+      <strong>Round ${r}</strong> — ${rType==='BO3'?'Best of 3 Sets':'Single Set'} · First to 21, win by 2 (max 31)
+      ${rType==='BO3'?'<span class="tag tag-bo3" style="margin-left:6px">BO3</span>':''}
     </div>`;
     html+=matches.map(f=>fixtureCardHTML(f)).join('');
     div.innerHTML=html; cont.appendChild(div);
@@ -3039,13 +3145,340 @@ function saveScoreEntry(){
 // CUSTOM FIXTURES
 // ═══════════════════════════════════════════════════════════════
 
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOM FORMAT BUILDER + PRESET SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+// In-memory format state (filled by the builder)
+var CFG = {
+  rounds: 5,
+  courts: 3,
+  roundTypes: {},   // { 1:'SINGLE', 2:'SINGLE', ... }
+  pairings: {}      // { 1:[[a1,b1],[a2,b2],...], ... }
+};
+
+var CURRENT_STEP = 1;
+
+// ── Preset storage (localStorage, keyed separately from session) ──
+var PRESET_STORE_KEY = 'sm26_presets';
+
+function loadPresets(){
+  try{ return JSON.parse(localStorage.getItem(PRESET_STORE_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function savePresets(presets){
+  try{ localStorage.setItem(PRESET_STORE_KEY, JSON.stringify(presets)); }
+  catch(e){ console.warn('preset save failed',e); }
+}
+
+// ── Step navigation ──
+function goToStep(n){
+  if(n === 2 && !validateStep1()) return;
+  if(n === 3 && !validateStep2()) return;
+  CURRENT_STEP = n;
+  [1,2,3].forEach(function(i){
+    var el = document.getElementById('custom-step-'+i);
+    if(el) el.style.display = i===n ? 'block' : 'none';
+  });
+  if(n === 2) buildPairingsUI();
+  if(n === 3) buildReviewUI();
+}
+
+function validateStep1(){
+  var rounds = parseInt(document.getElementById('cfg-rounds').value)||0;
+  var courts = parseInt(document.getElementById('cfg-courts').value)||0;
+  if(rounds < 1 || rounds > 10){ toast('Rounds must be 1–10'); return false; }
+  if(courts < 1 || courts > 10){ toast('Courts must be 1–10'); return false; }
+  CFG.rounds = rounds;
+  CFG.courts = courts;
+  // Collect round types
+  for(var r=1; r<=rounds; r++){
+    var el = document.getElementById('rt-type-'+r);
+    CFG.roundTypes[r] = el ? el.value : 'SINGLE';
+  }
+  // Ensure pairings has an entry for each round
+  for(var r=1; r<=rounds; r++){
+    if(!CFG.pairings[r]) CFG.pairings[r] = [[1,1],[2,2]];
+  }
+  return true;
+}
+
+function validateStep2(){
+  var ok = true;
+  for(var r=1; r<=CFG.rounds; r++){
+    var pairs = CFG.pairings[r];
+    if(!pairs || pairs.length === 0){ toast('Round '+r+' has no matches'); ok=false; break; }
+    for(var i=0; i<pairs.length; i++){
+      if(!pairs[i][0] || !pairs[i][1]){ toast('Round '+r+' match '+(i+1)+' has empty slots'); ok=false; break; }
+    }
+    if(!ok) break;
+  }
+  return ok;
+}
+
+// ── Step 1: update round-type grid when rounds count changes ──
+function updateFormatConfig(){
+  var rounds = parseInt(document.getElementById('cfg-rounds').value)||5;
+  var grid = document.getElementById('round-type-grid');
+  if(!grid) return;
+  // Keep existing selections
+  var existing = {};
+  for(var r=1; r<=10; r++){
+    var el = document.getElementById('rt-type-'+r);
+    if(el) existing[r] = el.value;
+  }
+  grid.innerHTML = '';
+  for(var r=1; r<=rounds; r++){
+    var cur = existing[r] || (r >= rounds-1 ? 'BO3' : 'SINGLE');
+    var row = document.createElement('div');
+    row.className = 'round-type-row';
+    row.innerHTML = '<span class="rtl">Round '+r+'</span>'
+      + '<input type="hidden" id="rt-type-'+r+'" value="'+cur+'">'
+      + '<div class="rt-toggle">'
+      + '<button class="rt-btn'+(cur==='SINGLE'?' active':'')+'" onclick="setRoundType('+r+',\'SINGLE\',this)">1 Set</button>'
+      + '<button class="rt-btn'+(cur==='BO3'?' active':'')+'" onclick="setRoundType('+r+',\'BO3\',this)">Best of 3</button>'
+      + '</div>';
+    grid.appendChild(row);
+  }
+}
+
+function setRoundType(round, type, btn){
+  document.getElementById('rt-type-'+round).value = type;
+  var row = btn.closest('.round-type-row');
+  row.querySelectorAll('.rt-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+// ── Step 2: Pairings builder ──
+function buildPairingsUI(){
+  var container = document.getElementById('pairings-builder');
+  container.innerHTML = '';
+  for(var r=1; r<=CFG.rounds; r++){
+    var block = document.createElement('div');
+    block.className = 'pairing-round-block';
+    block.id = 'pairing-block-'+r;
+    var typeLabel = CFG.roundTypes[r]==='BO3' ? ' <span class="tag tag-bo3">BO3</span>' : ' <span class="tag tag-single">1 Set</span>';
+    block.innerHTML = '<div class="pairing-round-title">Round '+r+typeLabel+'</div><div class="pairing-matches" id="pm-'+r+'"></div>'
+      + '<button class="add-match-btn" onclick="addPairingMatch('+r+')">＋ Add Match</button>';
+    container.appendChild(block);
+    // Render existing matches
+    var pairs = CFG.pairings[r] || [[1,1]];
+    CFG.pairings[r] = pairs;
+    pairs.forEach(function(pair, idx){
+      renderPairingMatchRow(r, idx, pair[0], pair[1]);
+    });
+  }
+}
+
+function renderPairingMatchRow(round, idx, aRank, bRank){
+  var container = document.getElementById('pm-'+round);
+  var row = document.createElement('div');
+  row.className = 'pairing-match-row';
+  row.id = 'pm-'+round+'-'+idx;
+
+  var rankOpts = '';
+  for(var i=1; i<=8; i++) rankOpts += '<option value="'+i+'"'+(i===aRank?' selected':'')+'>Rank '+i+'</option>';
+  var rankOptsB = '';
+  for(var i=1; i<=8; i++) rankOptsB += '<option value="'+i+'"'+(i===bRank?' selected':'')+'>Rank '+i+'</option>';
+
+  row.innerHTML = '<select class="pairing-select" onchange="updatePairing('+round+','+idx+',\'a\',this.value)">'
+    + '<option disabled>— Group A —</option>' + rankOpts + '</select>'
+    + '<div style="text-align:center"><div class="pairing-vs">VS</div><div style="font-size:.6rem;color:var(--stone3)">A vs B</div></div>'
+    + '<select class="pairing-select" onchange="updatePairing('+round+','+idx+',\'b\',this.value)">'
+    + '<option disabled>— Group B —</option>' + rankOptsB + '</select>'
+    + '<button class="remove-match-btn" onclick="removePairingMatch('+round+','+idx+')" title="Remove">✕</button>';
+  container.appendChild(row);
+}
+
+function addPairingMatch(round){
+  if(!CFG.pairings[round]) CFG.pairings[round] = [];
+  var idx = CFG.pairings[round].length;
+  // Default: next sequential rank pair
+  var nextRank = Math.min(8, idx+1);
+  CFG.pairings[round].push([nextRank, nextRank]);
+  renderPairingMatchRow(round, idx, nextRank, nextRank);
+}
+
+function removePairingMatch(round, idx){
+  var container = document.getElementById('pm-'+round);
+  var rows = container.querySelectorAll('.pairing-match-row');
+  if(rows.length <= 1){ toast('At least 1 match per round'); return; }
+  CFG.pairings[round].splice(idx, 1);
+  // Re-render all rows for this round
+  container.innerHTML = '';
+  CFG.pairings[round].forEach(function(pair, i){
+    renderPairingMatchRow(round, i, pair[0], pair[1]);
+  });
+}
+
+function updatePairing(round, idx, side, value){
+  if(!CFG.pairings[round] || !CFG.pairings[round][idx]) return;
+  CFG.pairings[round][idx][side==='a'?0:1] = parseInt(value)||1;
+}
+
+// ── Step 3: Review ──
+function buildReviewUI(){
+  var container = document.getElementById('format-review');
+  var html = '<table class="review-table"><thead><tr><th>Round</th><th>Format</th><th>Matches</th></tr></thead><tbody>';
+  for(var r=1; r<=CFG.rounds; r++){
+    var pairs = CFG.pairings[r]||[];
+    var matchList = pairs.map(function(p){ return 'A'+p[0]+' vs B'+p[1]; }).join(', ');
+    html += '<tr><td><strong>R'+r+'</strong></td><td>'+(CFG.roundTypes[r]==='BO3'?'Best of 3':'1 Set')+'</td><td style="color:var(--ash)">'+matchList+'</td></tr>';
+  }
+  html += '</tbody></table>';
+  html += '<div style="font-size:.74rem;color:var(--ash)">'+CFG.rounds+' rounds · '+CFG.courts+' courts</div>';
+  container.innerHTML = html;
+}
+
+// ── Save preset ──
+function savePreset(){
+  var name = (document.getElementById('preset-name-inp').value||'').trim();
+  if(!name){ toast('Enter a preset name first'); return; }
+  var preset = {
+    id: 'P'+Date.now().toString(36).toUpperCase(),
+    name: name,
+    rounds: CFG.rounds,
+    courts: CFG.courts,
+    roundTypes: JSON.parse(JSON.stringify(CFG.roundTypes)),
+    pairings: JSON.parse(JSON.stringify(CFG.pairings)),
+    created: new Date().toLocaleDateString()
+  };
+  var presets = loadPresets();
+  // Prevent duplicate names
+  presets = presets.filter(function(p){ return p.name !== name; });
+  presets.unshift(preset);
+  savePresets(presets);
+  renderPresetChips();
+  toast('✅ Preset "'+name+'" saved!');
+}
+
+function deletePreset(id){
+  var presets = loadPresets().filter(function(p){ return p.id !== id; });
+  savePresets(presets);
+  renderPresetChips();
+  toast('Preset deleted');
+}
+
+function loadPreset(id){
+  var preset = loadPresets().find(function(p){ return p.id===id; });
+  if(!preset){ toast('Preset not found'); return; }
+  CFG.rounds = preset.rounds;
+  CFG.courts = preset.courts;
+  CFG.roundTypes = JSON.parse(JSON.stringify(preset.roundTypes));
+  CFG.pairings = JSON.parse(JSON.stringify(preset.pairings));
+  // Update step 1 UI
+  document.getElementById('cfg-rounds').value = CFG.rounds;
+  document.getElementById('cfg-courts').value = CFG.courts;
+  updateFormatConfig();
+  // Set the round type buttons to match preset
+  setTimeout(function(){
+    for(var r=1; r<=CFG.rounds; r++){
+      var hidden = document.getElementById('rt-type-'+r);
+      if(hidden){
+        hidden.value = CFG.roundTypes[r]||'SINGLE';
+        var row = hidden.closest('.round-type-row');
+        if(row){
+          row.querySelectorAll('.rt-btn').forEach(function(b){ b.classList.remove('active'); });
+          var target = CFG.roundTypes[r]==='BO3' ? row.querySelectorAll('.rt-btn')[1] : row.querySelectorAll('.rt-btn')[0];
+          if(target) target.classList.add('active');
+        }
+      }
+    }
+    toast('Preset "'+preset.name+'" loaded — review then Generate Fixtures');
+    goToStep(1);
+  }, 50);
+}
+
+function renderPresetChips(){
+  var presets = loadPresets();
+  var chips = document.getElementById('preset-chips');
+  var none = document.getElementById('preset-none-msg');
+  if(!chips) return;
+  if(presets.length === 0){
+    chips.innerHTML = '';
+    if(none) none.style.display = 'block';
+    return;
+  }
+  if(none) none.style.display = 'none';
+  chips.innerHTML = presets.map(function(p){
+    return '<div class="preset-chip" onclick="loadPreset(\''+p.id+'\')">'
+      + '📦 '+p.name+' <span style="color:var(--stone3);font-size:.65rem">('+p.rounds+'R·'+p.courts+'C)</span>'
+      + '<span class="del" onclick="event.stopPropagation();deletePreset(\''+p.id+'\')" title="Delete">✕</span>'
+      + '</div>';
+  }).join('');
+}
+
+// ── Apply custom format → generate fixtures ──
+function applyCustomFormat(){
+  if(!validateStep2()) return;
+  // Write into the live S.fixtures replacing current fixtures
+  // Also persist CFG into S so it's synced
+  S.customFormat = {
+    rounds: CFG.rounds,
+    courts: CFG.courts,
+    roundTypes: JSON.parse(JSON.stringify(CFG.roundTypes)),
+    pairings: JSON.parse(JSON.stringify(CFG.pairings))
+  };
+  buildCustomFixtures();
+  saveLocal(); saveFB();
+  renderFixturesUI();
+  // Jump to auto view to show generated fixtures
+  document.getElementById('fixpanel-custom').style.display = 'none';
+  document.getElementById('fixpanel-auto').style.display = 'block';
+  document.getElementById('fixtab-auto').classList.add('active');
+  document.getElementById('fixtab-custom').classList.remove('active');
+  toast('✅ '+CFG.rounds+' rounds × '+CFG.courts+' courts fixtures generated!');
+}
+
+function buildCustomFixtures(){
+  S.fixtures = [];
+  var fmt = S.customFormat;
+  if(!fmt) return;
+  for(var r=1; r<=fmt.rounds; r++){
+    var pairs = fmt.pairings[r] || [];
+    var type = fmt.roundTypes[r] || 'SINGLE';
+    pairs.forEach(function(pair, idx){
+      var aRank = pair[0], bRank = pair[1];
+      var pA = getPlayer('A', aRank);
+      var pB = getPlayer('B', bRank);
+      // Court assignment - rotate through available courts
+      var court = (idx % fmt.courts) + 1;
+      S.fixtures.push({
+        id: 'R'+r+'M'+(idx+1),
+        round: r,
+        court: court,
+        matchType: type,
+        pairA: [pA.id, pA.id],  // singles: same player twice
+        pairB: [pB.id, pB.id],
+        rankPair: [aRank, bRank],
+        status: 'not_started',
+        matchState: newMatchState(type)
+      });
+    });
+  }
+}
+
 function switchFixtureMode(mode){
   FIXTURE_MODE = mode;
   document.getElementById('fixtab-auto').classList.toggle('active', mode==='auto');
   document.getElementById('fixtab-custom').classList.toggle('active', mode==='custom');
-  document.getElementById('fixpanel-auto').style.display = mode==='auto'?'block':'none';
-  document.getElementById('fixpanel-custom').style.display = mode==='custom'?'block':'none';
-  if(mode==='custom') populateCustomFixtureSelects();
+  document.getElementById('fixpanel-auto').style.display = mode==='auto' ? 'block' : 'none';
+  document.getElementById('fixpanel-custom').style.display = mode==='custom' ? 'block' : 'none';
+  if(mode==='custom'){
+    updateFormatConfig();
+    renderPresetChips();
+    goToStep(1);
+    if(S.customFormat){
+      CFG.rounds = S.customFormat.rounds;
+      CFG.courts = S.customFormat.courts;
+      CFG.roundTypes = JSON.parse(JSON.stringify(S.customFormat.roundTypes));
+      CFG.pairings = JSON.parse(JSON.stringify(S.customFormat.pairings));
+      document.getElementById('cfg-rounds').value = CFG.rounds;
+      document.getElementById('cfg-courts').value = CFG.courts;
+      updateFormatConfig();
+    }
+  }
 }
 
 function populateCustomFixtureSelects(){
