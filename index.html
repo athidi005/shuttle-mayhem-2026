@@ -1115,15 +1115,7 @@ a,button,[onclick]{touch-action:manipulation;}
         <strong>Firebase Real-Time Sync (for multi-device scoring):</strong><br>
         1. <a href="https://console.firebase.google.com" target="_blank" style="color:var(--fire3)">console.firebase.google.com</a> → Create project → Add Web App<br>
         2. Copy the <code style="color:var(--gold)">firebaseConfig</code> object<br>
-        3. In this HTML file find <code style="color:var(--gold)">const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDSgXhl-MNFvIfbyGFsu4rfmTzNqYPXnLo",
-  authDomain: "shuttlemayhem.firebaseapp.com",
-  projectId: "shuttlemayhem",
-  storageBucket: "shuttlemayhem.firebasestorage.app",
-  messagingSenderId: "469835811009",
-  appId: "1:469835811009:web:b735e0a9fb5e6154eaac40",
-  measurementId: "G-EG7FCVT05N"
-};</code> and paste your keys<br>
+        3. In this HTML file find <code style="color:var(--gold)">const FIREBASE_CONFIG = {   apiKey: "AIzaSyDSgXhl-MNFvIfbyGFsu4rfmTzNqYPXnLo",   authDomain: "shuttlemayhem.firebaseapp.com",   projectId: "shuttlemayhem",   storageBucket: "shuttlemayhem.firebasestorage.app",   messagingSenderId: "469835811009",   appId: "1:469835811009:web:b735e0a9fb5e6154eaac40",   measurementId: "G-EG7FCVT05N" }</code> and paste your keys<br>
         4. Firestore → Create database (test mode) → paste Firestore rules below<br>
         5. Multiple organizers join via the same Session ID — all edits sync live<br><br>
         <strong>Firestore Security Rules:</strong><br>
@@ -1603,12 +1595,13 @@ service cloud.firestore {
 // Leave as-is for localStorage-only mode.
 // ═══════════════════════════════════════════════════════════
 const FIREBASE_CONFIG = {
-  // apiKey: "YOUR_API_KEY",
-  // authDomain: "YOUR_PROJECT.firebaseapp.com",
-  // projectId: "YOUR_PROJECT_ID",
-  // storageBucket: "YOUR_PROJECT.appspot.com",
-  // messagingSenderId: "YOUR_SENDER_ID",
-  // appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDSgXhl-MNFvIfbyGFsu4rfmTzNqYPXnLo",
+  authDomain: "shuttlemayhem.firebaseapp.com",
+  projectId: "shuttlemayhem",
+  storageBucket: "shuttlemayhem.firebasestorage.app",
+  messagingSenderId: "469835811009",
+  appId: "1:469835811009:web:b735e0a9fb5e6154eaac40",
+  measurementId: "G-EG7FCVT05N"
 };
 const FB_ENABLED = Object.keys(FIREBASE_CONFIG).length > 0 && FIREBASE_CONFIG.apiKey;
 
