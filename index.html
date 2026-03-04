@@ -816,6 +816,28 @@ a,button,[onclick]{touch-action:manipulation;}
 .review-table td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.04);
   color:var(--cream);}
 .review-table tr:last-child td{border-bottom:none;}
+
+/* ─── Pair selector layout ─── */
+.pairing-match-row{display:grid;grid-template-columns:1fr 44px 1fr 32px;
+  gap:8px;align-items:center;margin-bottom:10px;
+  background:rgba(255,255,255,.02);border:1px solid var(--stone2);
+  border-radius:8px;padding:10px 10px;}
+.pair-side{display:flex;flex-direction:column;gap:4px;}
+.pair-group-label{font-size:.68rem;font-weight:700;color:var(--ash);
+  text-transform:uppercase;letter-spacing:.4px;}
+.pairing-vs-col{display:flex;align-items:center;justify-content:center;}
+.pairing-vs{font-weight:900;color:var(--teal);font-size:.8rem;text-align:center;}
+.pairing-select{background:var(--stone);border:1.5px solid var(--stone2);
+  border-radius:6px;color:var(--cream);padding:7px 8px;font-size:.82rem;
+  font-family:'Outfit',sans-serif;width:100%;cursor:pointer;}
+.pairing-select:focus{outline:none;border-color:var(--teal);}
+.remove-match-btn{background:none;border:none;color:var(--stone3);
+  cursor:pointer;font-size:1.1rem;padding:4px;border-radius:4px;}
+.remove-match-btn:hover{color:#EF5350;background:rgba(239,83,80,.1);}
+@media(max-width:480px){
+  .pairing-match-row{grid-template-columns:1fr 36px 1fr 28px;gap:5px;padding:8px 7px;}
+  .pairing-select{font-size:.75rem;padding:6px 5px;}
+}
 </style>
 </head>
 <body>
@@ -3185,36 +3207,98 @@ function goToStep(n){
   if(n === 3) buildReviewUI();
 }
 
+
+// ─── Pair-combo helpers ─────────────────────────────────────
+function getAllPairCombos(n){
+  var out=[];
+  for(var i=1;i<=n;i++) for(var j=i+1;j<=n;j++) out.push([i,j]);
+  return out;
+}
+function parseRankPair(val){
+  var p=(val||'').split(',');
+  return [parseInt(p[0])||1, parseInt(p[1])||2];
+}
+function buildPairOpts(sel, grp){
+  var combos=getAllPairCombos(8);
+  var selKey=sel ? sel[0]+','+sel[1] : '1,2';
+  var out='<option value="" disabled>'+grp+' pair</option>';
+  combos.forEach(function(c){
+    var k=c[0]+','+c[1];
+    out+='<option value="'+k+'"'+(k===selKey?' selected':'')+'>Rank '+c[0]+' + Rank '+c[1]+'</option>';
+  });
+  return out;
+}
+
+function renderPairingRow(round, idx, aPair, bPair){
+  var aS=aPair||[1,2]; var bS=bPair||[1,2];
+  var container=document.getElementById('pm-'+round);
+  var row=document.createElement('div');
+  row.className='pairing-match-row';
+  row.id='pm-'+round+'-'+idx;
+  // Use data attributes for onchange to avoid quote nesting issues
+  var aOpts=buildPairOpts(aS,'Group A');
+  var bOpts=buildPairOpts(bS,'Group B');
+  row.innerHTML=
+    '<div class="pair-side">'
+      +'<div class="pair-group-label">⚡ Group A</div>'
+      +'<select class="pairing-select" data-round="'+round+'" data-idx="'+idx+'" data-side="a">'+aOpts+'</select>'
+    +'</div>'
+    +'<div class="pairing-vs-col"><div class="pairing-vs">VS</div></div>'
+    +'<div class="pair-side">'
+      +'<div class="pair-group-label">💎 Group B</div>'
+      +'<select class="pairing-select" data-round="'+round+'" data-idx="'+idx+'" data-side="b">'+bOpts+'</select>'
+    +'</div>'
+    +'<button class="remove-match-btn" data-round="'+round+'" data-idx="'+idx+'" title="Remove">✕</button>';
+  // Attach listeners via JS (avoids all quote issues)
+  container.appendChild(row);
+  var selects=row.querySelectorAll('select');
+  selects.forEach(function(sel){
+    sel.addEventListener('change',function(){
+      var rnd=parseInt(this.getAttribute('data-round'));
+      var ix=parseInt(this.getAttribute('data-idx'));
+      var side=this.getAttribute('data-side');
+      var pair=parseRankPair(this.value);
+      if(CFG.pairings[rnd]&&CFG.pairings[rnd][ix]) CFG.pairings[rnd][ix][side]=pair;
+    });
+  });
+  var rmBtn=row.querySelector('.remove-match-btn');
+  rmBtn.addEventListener('click',function(){
+    var rnd=parseInt(this.getAttribute('data-round'));
+    var ix=parseInt(this.getAttribute('data-idx'));
+    removePairingMatch(rnd,ix);
+  });
+}
+
 function validateStep1(){
-  var rounds = parseInt(document.getElementById('cfg-rounds').value)||0;
-  var courts = parseInt(document.getElementById('cfg-courts').value)||0;
-  if(rounds < 1 || rounds > 10){ toast('Rounds must be 1–10'); return false; }
-  if(courts < 1 || courts > 10){ toast('Courts must be 1–10'); return false; }
-  CFG.rounds = rounds;
-  CFG.courts = courts;
-  // Collect round types
-  for(var r=1; r<=rounds; r++){
-    var el = document.getElementById('rt-type-'+r);
-    CFG.roundTypes[r] = el ? el.value : 'SINGLE';
+  var rounds=parseInt(document.getElementById('cfg-rounds').value)||0;
+  var courts=parseInt(document.getElementById('cfg-courts').value)||0;
+  if(rounds<1||rounds>10){toast('Rounds must be 1-10');return false;}
+  if(courts<1||courts>10){toast('Courts must be 1-10');return false;}
+  CFG.rounds=rounds; CFG.courts=courts;
+  for(var r=1;r<=rounds;r++){
+    var el=document.getElementById('rt-type-'+r);
+    CFG.roundTypes[r]=el?el.value:'SINGLE';
   }
-  // Ensure pairings has an entry for each round
-  for(var r=1; r<=rounds; r++){
-    if(!CFG.pairings[r]) CFG.pairings[r] = [[1,1],[2,2]];
+  for(var r=1;r<=rounds;r++){
+    if(!CFG.pairings[r]||!CFG.pairings[r][0]||!CFG.pairings[r][0].a){
+      CFG.pairings[r]=[{a:[1,2],b:[1,2]},{a:[3,4],b:[3,4]}];
+    }
   }
   return true;
 }
 
 function validateStep2(){
-  var ok = true;
-  for(var r=1; r<=CFG.rounds; r++){
-    var pairs = CFG.pairings[r];
-    if(!pairs || pairs.length === 0){ toast('Round '+r+' has no matches'); ok=false; break; }
-    for(var i=0; i<pairs.length; i++){
-      if(!pairs[i][0] || !pairs[i][1]){ toast('Round '+r+' match '+(i+1)+' has empty slots'); ok=false; break; }
+  for(var r=1;r<=CFG.rounds;r++){
+    var ms=CFG.pairings[r];
+    if(!ms||ms.length===0){toast('Round '+r+' has no matches');return false;}
+    for(var i=0;i<ms.length;i++){
+      var m=ms[i];
+      if(!m.a||!m.b||m.a.length<2||m.b.length<2){
+        toast('Round '+r+' match '+(i+1)+' is incomplete');return false;
+      }
     }
-    if(!ok) break;
   }
-  return ok;
+  return true;
 }
 
 // ── Step 1: update round-type grid when rounds count changes ──
@@ -3252,83 +3336,85 @@ function setRoundType(round, type, btn){
 
 // ── Step 2: Pairings builder ──
 function buildPairingsUI(){
-  var container = document.getElementById('pairings-builder');
-  container.innerHTML = '';
-  for(var r=1; r<=CFG.rounds; r++){
-    var block = document.createElement('div');
-    block.className = 'pairing-round-block';
-    block.id = 'pairing-block-'+r;
-    var typeLabel = CFG.roundTypes[r]==='BO3' ? ' <span class="tag tag-bo3">BO3</span>' : ' <span class="tag tag-single">1 Set</span>';
-    block.innerHTML = '<div class="pairing-round-title">Round '+r+typeLabel+'</div><div class="pairing-matches" id="pm-'+r+'"></div>'
-      + '<button class="add-match-btn" onclick="addPairingMatch('+r+')">＋ Add Match</button>';
-    container.appendChild(block);
-    // Render existing matches
-    var pairs = CFG.pairings[r] || [[1,1]];
-    CFG.pairings[r] = pairs;
-    pairs.forEach(function(pair, idx){
-      renderPairingMatchRow(r, idx, pair[0], pair[1]);
+  var container=document.getElementById('pairings-builder');
+  container.innerHTML='';
+  for(var r=1;r<=CFG.rounds;r++){
+    // Migrate old [aRank,bRank] format to {a:[r1,r2],b:[r1,r2]}
+    var raw=CFG.pairings[r]||[];
+    CFG.pairings[r]=raw.map(function(p){
+      if(Array.isArray(p)) return {a:[p[0],Math.min(8,p[0]+1)],b:[p[1],Math.min(8,p[1]+1)]};
+      return p;
     });
+    if(CFG.pairings[r].length===0) CFG.pairings[r]=[{a:[1,2],b:[1,2]}];
+
+    var typeLabel=CFG.roundTypes[r]==='BO3'
+      ? '<span class="tag tag-bo3">BO3</span>'
+      : '<span class="tag tag-single">1 Set</span>';
+    var block=document.createElement('div');
+    block.className='pairing-round-block';
+    block.id='pairing-block-'+r;
+    block.innerHTML='<div class="pairing-round-title">Round '+r+' '+typeLabel+'</div>'
+      +'<div class="pairing-matches" id="pm-'+r+'"></div>'
+      +'<button class="add-match-btn" onclick="addPairingMatch('+r+')">+ Add Match</button>';
+    container.appendChild(block);
+    CFG.pairings[r].forEach(function(m,i){ renderPairingRow(r,i,m.a,m.b); });
   }
 }
 
 function renderPairingMatchRow(round, idx, aRank, bRank){
-  var container = document.getElementById('pm-'+round);
-  var row = document.createElement('div');
-  row.className = 'pairing-match-row';
-  row.id = 'pm-'+round+'-'+idx;
-
-  var rankOpts = '';
-  for(var i=1; i<=8; i++) rankOpts += '<option value="'+i+'"'+(i===aRank?' selected':'')+'>Rank '+i+'</option>';
-  var rankOptsB = '';
-  for(var i=1; i<=8; i++) rankOptsB += '<option value="'+i+'"'+(i===bRank?' selected':'')+'>Rank '+i+'</option>';
-
-  row.innerHTML = '<select class="pairing-select" onchange="updatePairing('+round+','+idx+',\'a\',this.value)">'
-    + '<option disabled>— Group A —</option>' + rankOpts + '</select>'
-    + '<div style="text-align:center"><div class="pairing-vs">VS</div><div style="font-size:.6rem;color:var(--stone3)">A vs B</div></div>'
-    + '<select class="pairing-select" onchange="updatePairing('+round+','+idx+',\'b\',this.value)">'
-    + '<option disabled>— Group B —</option>' + rankOptsB + '</select>'
-    + '<button class="remove-match-btn" onclick="removePairingMatch('+round+','+idx+')" title="Remove">✕</button>';
-  container.appendChild(row);
+  // Legacy wrapper — convert single ranks to pairs
+  var aPair=Array.isArray(aRank)?aRank:[aRank,Math.min(8,aRank+1)];
+  var bPair=Array.isArray(bRank)?bRank:[bRank,Math.min(8,bRank+1)];
+  renderPairingRow(round,idx,aPair,bPair);
 }
 
 function addPairingMatch(round){
-  if(!CFG.pairings[round]) CFG.pairings[round] = [];
-  var idx = CFG.pairings[round].length;
-  // Default: next sequential rank pair
-  var nextRank = Math.min(8, idx+1);
-  CFG.pairings[round].push([nextRank, nextRank]);
-  renderPairingMatchRow(round, idx, nextRank, nextRank);
+  if(!CFG.pairings[round]) CFG.pairings[round]=[];
+  var idx=CFG.pairings[round].length;
+  var used=CFG.pairings[round].map(function(m){return m.a?m.a[0]+','+m.a[1]:'';});
+  var combos=getAllPairCombos(8);
+  var next=null;
+  for(var i=0;i<combos.length;i++){
+    if(used.indexOf(combos[i][0]+','+combos[i][1])<0){next=combos[i];break;}
+  }
+  if(!next) next=[1,2];
+  var nm={a:next,b:next.slice()};
+  CFG.pairings[round].push(nm);
+  renderPairingRow(round,idx,nm.a,nm.b);
 }
 
 function removePairingMatch(round, idx){
-  var container = document.getElementById('pm-'+round);
-  var rows = container.querySelectorAll('.pairing-match-row');
-  if(rows.length <= 1){ toast('At least 1 match per round'); return; }
-  CFG.pairings[round].splice(idx, 1);
-  // Re-render all rows for this round
-  container.innerHTML = '';
-  CFG.pairings[round].forEach(function(pair, i){
-    renderPairingMatchRow(round, i, pair[0], pair[1]);
-  });
+  var container=document.getElementById('pm-'+round);
+  if(container.querySelectorAll('.pairing-match-row').length<=1){
+    toast('At least 1 match per round'); return;
+  }
+  CFG.pairings[round].splice(idx,1);
+  container.innerHTML='';
+  CFG.pairings[round].forEach(function(m,i){ renderPairingRow(round,i,m.a,m.b); });
 }
 
 function updatePairing(round, idx, side, value){
-  if(!CFG.pairings[round] || !CFG.pairings[round][idx]) return;
-  CFG.pairings[round][idx][side==='a'?0:1] = parseInt(value)||1;
+  if(!CFG.pairings[round]||!CFG.pairings[round][idx]) return;
+  CFG.pairings[round][idx][side]=parseRankPair(value);
 }
 
 // ── Step 3: Review ──
 function buildReviewUI(){
-  var container = document.getElementById('format-review');
-  var html = '<table class="review-table"><thead><tr><th>Round</th><th>Format</th><th>Matches</th></tr></thead><tbody>';
-  for(var r=1; r<=CFG.rounds; r++){
-    var pairs = CFG.pairings[r]||[];
-    var matchList = pairs.map(function(p){ return 'A'+p[0]+' vs B'+p[1]; }).join(', ');
-    html += '<tr><td><strong>R'+r+'</strong></td><td>'+(CFG.roundTypes[r]==='BO3'?'Best of 3':'1 Set')+'</td><td style="color:var(--ash)">'+matchList+'</td></tr>';
+  var container=document.getElementById('format-review');
+  var html='<table class="review-table"><thead><tr><th>Round</th><th>Format</th><th>Matches</th></tr></thead><tbody>';
+  for(var r=1;r<=CFG.rounds;r++){
+    var ms=CFG.pairings[r]||[];
+    var list=ms.map(function(m){
+      var a=m.a||[1,2]; var b=m.b||[1,2];
+      return '<span style="color:var(--teal)">A'+a[0]+'+A'+a[1]+'</span>'
+            +' vs '
+            +'<span style="color:var(--blue)">B'+b[0]+'+B'+b[1]+'</span>';
+    }).join(' &nbsp;|&nbsp; ');
+    var fmt=CFG.roundTypes[r]==='BO3'?'<span class="tag tag-bo3">BO3</span>':'<span class="tag tag-single">1 Set</span>';
+    html+='<tr><td><strong>R'+r+'</strong></td><td>'+fmt+'</td><td style="font-size:.72rem">'+list+'</td></tr>';
   }
-  html += '</tbody></table>';
-  html += '<div style="font-size:.74rem;color:var(--ash)">'+CFG.rounds+' rounds · '+CFG.courts+' courts</div>';
-  container.innerHTML = html;
+  html+='</tbody></table><div style="font-size:.74rem;color:var(--ash);margin-top:6px">'+CFG.rounds+' rounds &middot; '+CFG.courts+' courts</div>';
+  container.innerHTML=html;
 }
 
 // ── Save preset ──
@@ -3432,28 +3518,24 @@ function applyCustomFormat(){
 }
 
 function buildCustomFixtures(){
-  S.fixtures = [];
-  var fmt = S.customFormat;
-  if(!fmt) return;
-  for(var r=1; r<=fmt.rounds; r++){
-    var pairs = fmt.pairings[r] || [];
-    var type = fmt.roundTypes[r] || 'SINGLE';
-    pairs.forEach(function(pair, idx){
-      var aRank = pair[0], bRank = pair[1];
-      var pA = getPlayer('A', aRank);
-      var pB = getPlayer('B', bRank);
-      // Court assignment - rotate through available courts
-      var court = (idx % fmt.courts) + 1;
+  S.fixtures=[];
+  var fmt=S.customFormat; if(!fmt) return;
+  for(var r=1;r<=fmt.rounds;r++){
+    var ms=fmt.pairings[r]||[];
+    var type=fmt.roundTypes[r]||'SINGLE';
+    ms.forEach(function(match,idx){
+      var aR=match.a||[1,2]; var bR=match.b||[1,2];
+      var pA1=getPlayer('A',aR[0]); var pA2=getPlayer('A',aR[1]);
+      var pB1=getPlayer('B',bR[0]); var pB2=getPlayer('B',bR[1]);
       S.fixtures.push({
-        id: 'R'+r+'M'+(idx+1),
-        round: r,
-        court: court,
-        matchType: type,
-        pairA: [pA.id, pA.id],  // singles: same player twice
-        pairB: [pB.id, pB.id],
-        rankPair: [aRank, bRank],
-        status: 'not_started',
-        matchState: newMatchState(type)
+        id:'R'+r+'M'+(idx+1), round:r,
+        court:(idx%fmt.courts)+1,
+        matchType:type,
+        pairA:[pA1.id,pA2.id],
+        pairB:[pB1.id,pB2.id],
+        rankPair:[aR[0],bR[0]],
+        status:'not_started',
+        matchState:newMatchState(type)
       });
     });
   }
