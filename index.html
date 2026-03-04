@@ -1535,7 +1535,7 @@ service cloud.firestore {
       <hr class="sep" style="margin:12px 0">
       <div class="detail-row">
         <span class="detail-label">Firebase sync</span>
-        <span class="detail-val" id="fb-mode-label">—</span>
+        <span class="detail-val" id="fb-mode-label" style="font-size:.78rem">Connecting…</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Session ID</span>
@@ -1546,7 +1546,8 @@ service cloud.firestore {
         <span class="detail-val" id="settings-created">—</span>
       </div>
     </div>
-    <div class="brow" style="margin-top:12px;justify-content:flex-end;">
+    <div class="brow" style="margin-top:6px;justify-content:flex-end;flex-wrap:wrap;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="testFirebaseConnection()">🔁 Test Firebase</button>
       <button class="btn btn-ghost btn-sm" onclick="closeSessionModal()">Close</button>
     </div>
   </div>
@@ -1735,17 +1736,19 @@ function loadFB(sid){
 function subscribeSession(sid){
   if(!FB_ENABLED||!db) return;
   if(DB_UNSUBSCRIBE) DB_UNSUBSCRIBE();
-  DB_UNSUBSCRIBE = db.collection('sessions').doc(sid).onSnapshot(snap=>{
+  DB_UNSUBSCRIBE = db.collection('sessions').doc(sid).onSnapshot(function(snap){
+    setSyncDot('ok');
+    setFBModeLabel('🟢 Firebase (real-time)');
     if(!snap.exists) return;
-    const data=snap.data();
+    var data=snap.data();
     // Only update if remote is newer (prevent echo loop)
     if(data && data.sessionId===SID){
       S=data;
       saveLocal();
       onStateUpdate();
     }
-  }, err=>{ setSyncDot('offline'); console.warn('Snapshot error',err); });
-  setSyncDot('ok');
+  }, function(err){ setSyncDot('offline'); setFBModeLabel('🔴 Sync error'); console.warn('Snapshot error',err); });
+  setSyncDot('syncing');
 }
 
 // Append a single point event atomically to Firestore
@@ -1795,11 +1798,23 @@ function init(){
       firebase.initializeApp(FIREBASE_CONFIG);
       db = firebase.firestore();
       auth = firebase.auth();
+      setFBModeLabel('Connecting…');
       fbInitPromise = auth.signInAnonymously()
-        .then(function(){ setFBModeLabel('Firebase (real-time)'); })
-        .catch(function(e){ console.warn('Firebase auth failed',e); });
+        .then(function(){
+          setFBModeLabel('Firebase (real-time) ✅');
+          setSyncDot('ok');
+          showFBStatus('connected');
+        })
+        .catch(function(e){
+          console.warn('Firebase auth failed',e);
+          var reason = e.code || e.message || 'unknown error';
+          setFBModeLabel('Auth failed: '+reason);
+          showFBStatus('error', reason);
+        });
     }catch(e){
       console.warn('Firebase init failed, falling back to localStorage',e);
+      setFBModeLabel('Init error: '+(e.message||e.code||'check console'));
+      showFBStatus('error', e.message||'Init failed');
     }
   } else {
     setFBModeLabel('localStorage only');
@@ -1980,6 +1995,86 @@ function setSyncDot(state){
 }
 function setFBModeLabel(txt){
   const el=document.getElementById('fb-mode-label'); if(el) el.textContent=txt;
+}
+
+function showFBStatus(state, detail){
+  // Update the firebase status row with colour + icon
+  const el = document.getElementById('fb-mode-label');
+  const row = el ? el.closest('.detail-row') : null;
+  if(!el) return;
+  if(state === 'connected'){
+    el.style.color = 'var(--green)';
+    el.textContent = '🟢 Firebase (real-time)';
+  } else if(state === 'error'){
+    el.style.color = '#EF5350';
+    el.textContent = '🔴 ' + (detail || 'Connection failed');
+    // Show the diagnostic banner
+    showFBDiagnostic(detail);
+  }
+  setSyncDot(state === 'connected' ? 'ok' : 'offline');
+}
+
+function showFBDiagnostic(errorDetail){
+  // Show a helpful banner with the most likely fix
+  var existing = document.getElementById('fb-diag-banner');
+  if(existing) existing.remove();
+
+  var isAuthError = errorDetail && (errorDetail.indexOf('auth') >= 0 || errorDetail.indexOf('PERMISSION') >= 0 || errorDetail.indexOf('anonymous') >= 0);
+  var isNetworkError = errorDetail && (errorDetail.indexOf('network') >= 0 || errorDetail.indexOf('fetch') >= 0);
+  
+  var msg, fix;
+  if(isAuthError || errorDetail === 'auth/operation-not-allowed'){
+    msg = '🔴 Firebase: Anonymous Auth not enabled';
+    fix = 'Go to Firebase Console → Authentication → Sign-in method → Enable Anonymous';
+  } else if(isNetworkError){
+    msg = '🔴 Firebase: Network error';
+    fix = 'Check internet connection. Firebase needs network access.';
+  } else {
+    msg = '🔴 Firebase connection failed: ' + (errorDetail||'unknown');
+    fix = 'Check Firebase Console → Project settings → your API keys match this file.';
+  }
+
+  var banner = document.createElement('div');
+  banner.id = 'fb-diag-banner';
+  banner.style.cssText = 'position:fixed;bottom:70px;left:10px;right:10px;z-index:9999;background:#1a0000;border:2px solid #EF5350;border-radius:10px;padding:12px 14px;font-size:.8rem;color:#EF9090;';
+  var closeBtn = '<button onclick="var b=document.getElementById(&quot;fb-diag-banner&quot;);if(b)b.remove();" style="position:absolute;top:8px;right:10px;background:none;border:none;color:#888;font-size:1rem;cursor:pointer">✕</button>';
+  var retryBtn = '<button onclick="testFirebaseConnection()" style="margin-top:8px;background:#EF5350;border:none;color:#fff;padding:5px 14px;border-radius:6px;cursor:pointer;font-size:.78rem">🔁 Retry Connection</button>';
+  banner.innerHTML = '<strong style="color:#EF5350;font-size:.85rem">'+msg+'</strong><br><span style="color:#aaa;margin-top:4px;display:block">'+fix+'</span>' + closeBtn + retryBtn;
+  document.body.appendChild(banner);
+}
+
+function testFirebaseConnection(){
+  var existing = document.getElementById('fb-diag-banner');
+  if(existing) existing.remove();
+  setFBModeLabel('Testing…');
+  setSyncDot('syncing');
+
+  if(!FB_ENABLED){
+    setFBModeLabel('⚠️ No API keys found in FIREBASE_CONFIG');
+    showFBDiagnostic('No API keys');
+    return;
+  }
+  if(!db || !auth){
+    setFBModeLabel('⚠️ Firebase SDK not loaded');
+    showFBDiagnostic('SDK not ready');
+    return;
+  }
+  auth.signInAnonymously()
+    .then(function(){
+      // Test Firestore write
+      return db.collection('_ping').doc('test').set({t: Date.now()});
+    })
+    .then(function(){
+      setFBModeLabel('🟢 Firebase (real-time)');
+      setSyncDot('ok');
+      toast('✅ Firebase connected and working!');
+    })
+    .catch(function(e){
+      var code = e.code || e.message || 'unknown';
+      setFBModeLabel('🔴 '+code);
+      setSyncDot('offline');
+      showFBDiagnostic(code);
+    });
 }
 
 // ═══════════════════════════════════════════════════════════
