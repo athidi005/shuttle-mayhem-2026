@@ -4397,6 +4397,13 @@ function updateTimeline(){
 // ⑫ STANDINGS
 // ═══════════════════════════════════════════════════════════
 function refreshStandings(){
+  // Recompute match points for any completed match that was scored before fix
+  (S.fixtures||[]).forEach(f=>{
+    const ms=f.matchState||{};
+    if(ms.status==='completed' && ms.winner && !ms.matchPointsA && !ms.matchPointsB){
+      computeMatchPoints(f, ms);
+    }
+  });
   const {totalA, totalB} = computeTeamTotals();
   const matchSummary = null;
   const body=document.getElementById('standings-body');
@@ -4487,6 +4494,7 @@ function computePlayerStats(){
 
     if(ms.winner){
       var winPair=ms.winner==='A'?f.pairA:f.pairB;
+      var losPair=ms.winner==='A'?f.pairB:f.pairA;
       var bonus  =ms.winner==='A'?(ms.bonusA||0):(ms.bonusB||0);
       var mpts   =ms.winner==='A'?(ms.matchPointsA||0):(ms.matchPointsB||0);
       winPair.forEach(function(id){
@@ -4502,6 +4510,13 @@ function computePlayerStats(){
           stats[id].adaptabilityWins++;
         }
       });
+      // Also count manual matches for losers so their mvpScore is calculated
+      if(!hasEvents){
+        losPair.forEach(function(id){
+          if(!stats[id])return;
+          stats[id].manualMatchCount++;
+        });
+      }
     }
 
     // Set-level stats
@@ -4811,32 +4826,99 @@ function histDelete(sid){
 }
 
 function renderEntryModeStats(pStats, played){
-  // Simple stats for Score Entry mode: just wins/losses, match points
-  const sorted = [...played].sort((a,b)=>b.matchesWon-a.matchesWon||(b.pointsScored-b.pointsConceded)-(a.pointsScored-a.pointsConceded));
-  let html = `<div class="sh"><h2>Tournament Results</h2></div>
+  if(!played || played.length === 0){
+    return '<div class="ibox">No matches completed yet.</div>';
+  }
+
+  const mvp = pStats[0];
+  const byBonus = [...played].sort((a,b)=>b.bonusEarned-a.bonusEarned)[0];
+  const bySets  = [...played].sort((a,b)=>b.setsWon-a.setsWon)[0];
+  const byWins  = [...played].sort((a,b)=>b.matchesWon-a.matchesWon)[0];
+
+  // ── MVP + highlight cards ──────────────────────────────
+  let html = `<div class="ppi-cards">
+    <div class="ppi-card" style="position:relative">
+      <h4>👑 Tournament MVP</h4>
+      <div class="ppi-name">${mvp ? mvp.name : '—'}</div>
+      <div class="ppi-val">Score: ${mvp ? mvp.mvpScore : 0}</div>
+      <div class="ppi-sub">
+        ${mvp ? mvp.matchesWon : 0}W · Bonus: +${mvp ? Math.round(mvp.bonusEarned*10)/10 : 0}
+      </div>
+      <div class="mvp-badge">✏️ Estimated (manual scores)</div>
+    </div>
+    <div class="ppi-card">
+      <h4>🏆 Most Wins</h4>
+      <div class="ppi-name">${byWins ? byWins.name : '—'}</div>
+      <div class="ppi-val">${byWins ? byWins.matchesWon : 0} wins</div>
+      <div class="ppi-sub">${byWins ? byWins.matchesPlayed : 0} played</div>
+    </div>
+    <div class="ppi-card">
+      <h4>🎯 Bonus King</h4>
+      <div class="ppi-name">${byBonus ? byBonus.name : '—'}</div>
+      <div class="ppi-val">+${byBonus ? Math.round(byBonus.bonusEarned*10)/10 : 0} pts</div>
+      <div class="ppi-sub">bonus points earned</div>
+    </div>
+    <div class="ppi-card">
+      <h4>🏸 Sets Won</h4>
+      <div class="ppi-name">${bySets ? bySets.name : '—'}</div>
+      <div class="ppi-val">${bySets ? bySets.setsWon : 0} sets</div>
+      <div class="ppi-sub">most sets across all matches</div>
+    </div>
+  </div>`;
+
+  // ── PPI Leaderboard table ──────────────────────────────
+  const sorted = [...played].sort((a,b)=>{
+    if(b.mvpScore !== a.mvpScore) return b.mvpScore - a.mvpScore;
+    if(b.bonusEarned !== a.bonusEarned) return b.bonusEarned - a.bonusEarned;
+    return b.matchesWon - a.matchesWon;
+  });
+
+  html += `<div class="sh" style="margin-top:16px"><h2>Player Rankings — Score Entry Mode</h2></div>
   <div class="stbl-wrap"><table class="stbl">
     <thead><tr>
-      <th>#</th><th>Player</th><th>Grp</th><th>Played</th><th>Won</th><th>Lost</th><th>Match Pts</th><th>Bonus</th>
+      <th>#</th><th>Player</th><th>Grp</th><th>Played</th><th>Won</th><th>Lost</th>
+      <th>Sets W</th><th>Sets L</th><th>Match Pts</th><th>Bonus</th><th>PPI</th>
     </tr></thead><tbody>`;
+
   sorted.forEach((p,i)=>{
-    const rkC=i===0?'rk1':i===1?'rk2':i===2?'rk3':'';
-    const gt=p.group==='A'?'<span class="badge">A</span>':'<span class="badge badge-b">B</span>';
-    html+=`<tr class="${i<=2?'r'+(i+1):''}">
+    const rkC = i===0?'rk1':i===1?'rk2':i===2?'rk3':'';
+    const gt = p.group==='A'
+      ? '<span class="badge">A</span>'
+      : '<span class="badge badge-b">B</span>';
+    const lost = p.matchesPlayed - p.matchesWon;
+    html += `<tr class="${i<3?'r'+(i+1):''}">
       <td><span class="rnk ${rkC}">${i+1}</span></td>
       <td style="font-weight:700;color:var(--cream)">${p.name}</td>
       <td>${gt}</td>
       <td style="font-family:'JetBrains Mono',monospace">${p.matchesPlayed}</td>
       <td style="font-weight:700;color:var(--green)">${p.matchesWon}</td>
-      <td style="color:var(--red-soft)">${p.matchesPlayed-p.matchesWon}</td>
+      <td style="color:#EF5350">${lost}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--teal)">${p.setsWon}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:#EF5350">${p.setsLost}</td>
       <td style="font-family:'JetBrains Mono',monospace;color:var(--gold)">${(p.matchPointsTotal||0).toFixed(1)}</td>
       <td style="color:var(--gold);font-family:'JetBrains Mono',monospace">+${p.bonusEarned.toFixed(1)}</td>
+      <td><span class="pts-b">${p.ppi}</span></td>
     </tr>`;
   });
-  html += '</tbody></table></div>';
+
+  html += `</tbody></table></div>
+  <div class="ibox" style="margin-top:12px;font-size:.75rem">
+    <strong>PPI</strong> = (Wins × 5) + (Match Pts × 2) + (Sets Won × 1) + (Set Pts / 10) · 
+    <strong>MVP Score</strong> includes bonus points and set efficiency · 
+    <span style="color:var(--ash)">✏️ Estimated from manual scores</span>
+  </div>`;
+
   return html;
 }
 
 function refreshStats(){
+  // Recompute match points for any completed match scored before fix
+  (S.fixtures||[]).forEach(f=>{
+    const ms=f.matchState||{};
+    if(ms.status==='completed' && ms.winner && !ms.matchPointsA && !ms.matchPointsB){
+      computeMatchPoints(f, ms);
+    }
+  });
   const pStats=computePlayerStats();
   const body=document.getElementById('stats-body');
   const tMode = S.tournamentMode || 'pro';
