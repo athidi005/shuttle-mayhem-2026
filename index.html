@@ -1290,6 +1290,7 @@ a,button,[onclick]{touch-action:manipulation;}
     </div>
   </div>
 
+</div> <!-- CLOSE pg-fixtures -->
 
 <!-- ══════ STANDINGS ══════ -->
 <div class="page" id="pg-standings">
@@ -2102,6 +2103,10 @@ function init(){
       subscribeSession(SID);
       updateSidUI();
       restoreUI();
+      refreshStandings();
+      refreshStats();
+      refreshExportPage();
+      histRefreshList();
       checkMigration();
       updateHomeBanner();
       updateBrowserURL();
@@ -2238,11 +2243,16 @@ function restoreUI(){
 }
 
 function onStateUpdate(){
-  // Called whenever state changes (local or remote)
   restoreUI();
-  if(document.getElementById('pg-standings').classList.contains('active')) refreshStandings();
-  if(document.getElementById('pg-stats').classList.contains('active')) refreshStats();
+
   if(document.getElementById('pg-fixtures').classList.contains('active')) renderFixturesUI();
+  if(document.getElementById('pg-standings').classList.contains('active')) refreshStandings();
+  if(document.getElementById('pg-stats').classList.contains('active')){
+    refreshStats();
+    if(typeof ORG_VIEW_ON !== 'undefined' && ORG_VIEW_ON) renderOrgView();
+  }
+  if(document.getElementById('pg-export').classList.contains('active')) refreshExportPage();
+  if(document.getElementById('pg-history').classList.contains('active')) histRefreshList();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -4397,91 +4407,63 @@ function updateTimeline(){
 // ⑫ STANDINGS
 // ═══════════════════════════════════════════════════════════
 function refreshStandings(){
-  const body = document.getElementById('standings-body');
-  if(!body) return;
-  try {
-    // Recompute match points for any match missing them
-    (S.fixtures||[]).forEach(function(f){
-      const ms = f.matchState||{};
-      if(ms.status==='completed' && ms.winner && !ms.matchPointsA && !ms.matchPointsB){
-        try { computeMatchPoints(f, ms); } catch(e){}
-      }
-    });
+  // Recompute match points for any completed match that was scored before fix
+  (S.fixtures||[]).forEach(f=>{
+    const ms=f.matchState||{};
+    if(ms.status==='completed' && ms.winner && !ms.matchPointsA && !ms.matchPointsB){
+      computeMatchPoints(f, ms);
+    }
+  });
+  const {totalA, totalB} = computeTeamTotals();
+  const matchSummary = null;
+  const body=document.getElementById('standings-body');
 
-    const {totalA, totalB} = computeTeamTotals();
-    const winnerBanner = totalA>totalB?'win-a':totalB>totalA?'win-b':'win-tie';
-    const winnerText   = totalA>totalB
-      ? `${gIcon('A')} ${gName('A').toUpperCase()} LEADS`
-      : totalB>totalA
-        ? `${gIcon('B')} ${gName('B').toUpperCase()} LEADS`
-        : '🤝 TIED';
+  const winnerBanner=totalA>totalB?'win-a':totalB>totalA?'win-b':'win-tie';
+  const winnerText=totalA>totalB?`${gIcon('A')} ${gName('A').toUpperCase()} LEADS`:totalB>totalA?`${gIcon('B')} ${gName('B').toUpperCase()} LEADS`:'🤝 TIED';
 
-    let html = `
-    <div class="team-totals">
-      <div class="team-card a">
-        <div style="font-family:'Playfair Display',serif;font-size:.85rem;color:var(--fire3);margin-bottom:6px;letter-spacing:2px">${gName('A').toUpperCase()}</div>
-        <div class="team-pts">${totalA}</div>
-        <div class="team-label">Tournament Points</div>
-      </div>
-      <div class="team-card b">
-        <div style="font-family:'Playfair Display',serif;font-size:.85rem;color:var(--blue);margin-bottom:6px;letter-spacing:2px">${gName('B').toUpperCase()}</div>
-        <div class="team-pts">${totalB}</div>
-        <div class="team-label">Tournament Points</div>
-      </div>
+  let html=`
+  <div class="team-totals">
+    <div class="team-card a">
+      <div style="font-family:'Playfair Display',serif;font-size:.85rem;color:var(--fire3);margin-bottom:6px;letter-spacing:2px">${gName('A').toUpperCase()}</div>
+      <div class="team-pts">${totalA}</div>
+      <div class="team-label">Tournament Points</div>
     </div>
-    <div class="goldbox" style="text-align:center">
-      <strong class="team-win ${winnerBanner}">${winnerText}</strong>
-      &nbsp;&nbsp;${gName('A')}: ${totalA} pts · ${gName('B')}: ${totalB} pts
+    <div class="team-card b">
+      <div style="font-family:'Playfair Display',serif;font-size:.85rem;color:var(--blue);margin-bottom:6px;letter-spacing:2px">${gName('B').toUpperCase()}</div>
+      <div class="team-pts">${totalB}</div>
+      <div class="team-label">Tournament Points</div>
     </div>
-    <div class="sh" style="margin-top:16px"><h2>Match Results</h2></div>
-    <div class="stbl-wrap"><table class="stbl">
-      <thead><tr>
-        <th>Round</th><th>Type</th><th>Ranks</th>
-        <th>${gName('A')}</th><th>Sets</th><th>${gName('B')}</th>
-        <th>A Pts</th><th>B Pts</th>
-      </tr></thead>
-      <tbody>`;
+  </div>
+  <div class="goldbox" style="text-align:center">
+    <strong class="team-win ${winnerBanner}">${winnerText}</strong>
+    &nbsp;&nbsp;A: ${totalA} pts · B: ${totalB} pts
+  </div>
+  <div class="sh" style="margin-top:16px"><h2>Match Results</h2></div>
+  <div class="stbl-wrap"><table class="stbl">
+    <thead><tr><th>Round</th><th>Type</th><th>Ranks</th><th>Group A</th><th>Sets</th><th>Group B</th><th>A Pts</th><th>B Pts</th></tr></thead>
+    <tbody>`;
 
-    (S.fixtures||[]).forEach(function(f){
-      try {
-        const ms  = f.matchState || {};
-        const pA  = f.pairA || [];
-        const pB  = f.pairB || [];
-        const pA1 = getPlayerById(pA[0]||'?');
-        const pA2 = getPlayerById(pA[1]||'?');
-        const pB1 = getPlayerById(pB[0]||'?');
-        const pB2 = getPlayerById(pB[1]||'?');
-        const sets = ms.sets || [];
-        const setScore = sets.filter(s=>s&&s.winner).map(s=>s.pointsA+'-'+s.pointsB).join(', ') || '—';
-        const rowC = ms.winner==='A'?'r1':ms.winner==='B'?'r2':'';
-        html += `<tr class="${rowC}">
-          <td>R${f.round||'?'}</td>
-          <td><span class="tag ${f.matchType==='BO3'?'tag-bo3':'tag-single'}">${f.matchType||'?'}</span></td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:.75rem">(${(f.rankPair||[0,0])[0]},${(f.rankPair||[0,0])[1]})</td>
-          <td style="font-size:.8rem">${pA1.name}/${pA2.name}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--ash)">${setScore}</td>
-          <td style="font-size:.8rem">${pB1.name}/${pB2.name}</td>
-          <td><span class="pts-b" style="${ms.winner==='A'?'color:var(--fire3)':''}">${ms.matchPointsA||0}</span></td>
-          <td><span class="pts-b" style="${ms.winner==='B'?'color:var(--blue)':''}">${ms.matchPointsB||0}</span></td>
-        </tr>`;
-      } catch(rowErr){ html += `<tr><td colspan="8" style="color:var(--ash);font-size:.75rem">Row error: ${rowErr.message}</td></tr>`; }
-    });
+  (S.fixtures||[]).forEach(f=>{
+    const ms=f.matchState||{};
+    const pA1=getPlayerById(f.pairA[0]), pA2=getPlayerById(f.pairA[1]);
+    const pB1=getPlayerById(f.pairB[0]), pB2=getPlayerById(f.pairB[1]);
+    const setScore=ms.sets?(ms.sets.filter(s=>s.winner).map(s=>s.pointsA+'-'+s.pointsB).join(', ')):'—';
+    const rowC=ms.winner==='A'?'r1':ms.winner==='B'?'r2':'';
+    html+=`<tr class="${rowC}">
+      <td>R${f.round}</td>
+      <td><span class="tag ${f.matchType==='BO3'?'tag-bo3':'tag-single'}">${f.matchType}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.75rem">(${f.rankPair[0]},${f.rankPair[1]})</td>
+      <td style="font-size:.8rem">${pA1.name}/${pA2.name}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--ash)">${setScore||'—'}</td>
+      <td style="font-size:.8rem">${pB1.name}/${pB2.name}</td>
+      <td><span class="pts-b" style="${ms.winner==='A'?'color:var(--fire3)':''}">${ms.matchPointsA||0}</span></td>
+      <td><span class="pts-b" style="${ms.winner==='B'?'color:var(--blue)':''}">${ms.matchPointsB||0}</span></td>
+    </tr>`;
+  });
 
-    html += `</tbody></table></div>
-    <p style="margin-top:10px;font-size:.72rem;color:var(--stone3)">
-      Session: ${S.sessionId||'—'} · ${new Date().toLocaleTimeString()}
-    </p>`;
-
-    body.innerHTML = html;
-
-  } catch(e) {
-    console.error('refreshStandings error:', e);
-    body.innerHTML = `<div class="ibox" style="color:var(--fire3)">
-      ⚠️ Error loading standings: ${e.message}<br>
-      <small style="color:var(--ash)">Try refreshing the page. If persists, check browser console.</small><br><br>
-      <button class="btn btn-out btn-sm" onclick="refreshStandings()">🔄 Retry</button>
-    </div>`;
-  }
+  html+=`</tbody></table></div>
+  <p style="margin-top:10px;font-size:.72rem;color:var(--stone3)">Session: ${S.sessionId} · ${new Date().toLocaleTimeString()}</p>`;
+  body.innerHTML=html;
 }
 
 function computeTeamTotals(){
@@ -4940,166 +4922,147 @@ function renderEntryModeStats(pStats, played){
 }
 
 function refreshStats(){
-  const body = document.getElementById('stats-body');
-  if(!body) return;
-  try {
-    // Recompute match points for any match missing them
-    (S.fixtures||[]).forEach(function(f){
-      const ms = f.matchState||{};
-      if(ms.status==='completed' && ms.winner && !ms.matchPointsA && !ms.matchPointsB){
-        try { computeMatchPoints(f, ms); } catch(e){}
-      }
-    });
-
-    const pStats = computePlayerStats();
-
-    if(!pStats || pStats.every(function(p){ return p.matchesPlayed===0; })){
-      body.innerHTML = '<div class="ibox">No matches played yet. Score some matches first!</div>';
-      return;
+  // Recompute match points for any completed match scored before fix
+  (S.fixtures||[]).forEach(f=>{
+    const ms=f.matchState||{};
+    if(ms.status==='completed' && ms.winner && !ms.matchPointsA && !ms.matchPointsB){
+      computeMatchPoints(f, ms);
     }
+  });
+  const pStats=computePlayerStats();
+  const body=document.getElementById('stats-body');
+  const tMode = S.tournamentMode || 'pro';
 
-    const played = pStats.filter(function(p){ return p.matchesPlayed>0; });
-
-    // Auto-detect mode: if all played matches have no point events, use entry-mode display
-    const allCompleted = (S.fixtures||[]).filter(function(f){ return (f.matchState||{}).status==='completed'; });
-    const hasAnyEvents = allCompleted.some(function(f){
-      return (f.matchState.sets||[]).some(function(s){ return s.events && s.events.length>0; });
-    });
-    const tMode = hasAnyEvents ? (S.tournamentMode||'pro') : 'entry';
-
-    // Mode banner
-    const modeLabels = {
-      pro:   '🎯 Pro Analytics — Full point & shot statistics',
-      quick: '⚡ Quick Score — Team-level statistics',
-      entry: '✏️ Score Entry — Match results & rankings'
-    };
-    const modeCls = {pro:'mlb-pro', quick:'mlb-quick', entry:'mlb-entry'};
-    let html = `<div style="margin-bottom:14px">
-      <span class="mode-label-badge ${modeCls[tMode]||'mlb-entry'}">${modeLabels[tMode]||'Score Entry'}</span>
-    </div>`;
-
-    if(tMode === 'entry'){
-      html += renderEntryModeStats(pStats, played);
-      body.innerHTML = html;
-      return;
-    }
-
-    // ── Pro / Quick path ──────────────────────────────────
-    const achvs = computeAchievements(pStats);
-    html += `<div class="sh"><h2 style="font-size:1rem">🏅 Achievements</h2></div><div class="achv-shelf">`;
-    achvs.forEach(function(a){
-      const dim = !a.holder;
-      html += `<div class="achv${dim?' dim':''}">
-        <span class="achv-icon">${a.icon}</span>
-        <span class="achv-name">${a.name}</span>
-        <span class="achv-holder">${a.holder?a.holder.name:'—'}</span>
-        <span class="achv-desc">${a.desc}</span>
-      </div>`;
-    });
-    html += `</div>`;
-
-    const mvp      = pStats[0];
-    const dominant = [...played].sort((a,b)=>b.bonusEarned-a.bonusEarned)[0];
-    const scorer   = [...played].sort((a,b)=>b.pointsScored-a.pointsScored)[0];
-    const defender = [...played].sort((a,b)=>(a.pointsConceded/Math.max(1,a.matchesPlayed))-(b.pointsConceded/Math.max(1,b.matchesPlayed)))[0];
-    const clutcher = [...played].sort((a,b)=>b.clutch20-a.clutch20)[0];
-    const sniper   = [...played].sort((a,b)=>b.winners-a.winners)[0];
-
-    html += `<div class="ppi-cards">
-      <div class="ppi-card" style="position:relative">
-        <h4>👑 Tournament MVP</h4>
-        <div class="ppi-name">${mvp?mvp.name:'—'}</div>
-        <div class="ppi-val">Score: ${mvp?mvp.mvpScore:0}</div>
-        <div class="ppi-sub">
-          ${mvp?mvp.matchesWon:0}W · Bonus: +${mvp?Math.round(mvp.bonusEarned*10)/10:0}
-          ${mvp&&mvp.mvpMode!=='none'?' · '+mvp.pointsScored+' pts scored':''}
-        </div>
-        <div class="mvp-badge">
-          ${mvp&&mvp.mvpMode==='full'?'📊 Full data':''}
-          ${mvp&&mvp.mvpMode==='manual'?'✏️ Estimated':''}
-          ${mvp&&mvp.mvpMode==='hybrid'?'🔀 Hybrid':''}
-          ${mvp&&mvp.mvpMode==='none'?'No data':''}
-        </div>
-      </div>
-      <div class="ppi-card">
-        <h4>🏸 Top Scorer</h4>
-        <div class="ppi-name">${scorer?scorer.name:'—'}</div>
-        <div class="ppi-val">${scorer?scorer.pointsScored:0} pts</div>
-        <div class="ppi-sub">${scorer?scorer.matchesPlayed:0} matches</div>
-      </div>
-      <div class="ppi-card">
-        <h4>⚡ Clutch King</h4>
-        <div class="ppi-name">${clutcher&&clutcher.clutch20>0?clutcher.name:'—'}</div>
-        <div class="ppi-val">${clutcher?clutcher.clutch20:0} clutch pts</div>
-        <div class="ppi-sub">scored at 20+ each</div>
-      </div>
-      <div class="ppi-card">
-        <h4>🎯 Sniper</h4>
-        <div class="ppi-name">${sniper&&sniper.winners>0?sniper.name:'—'}</div>
-        <div class="ppi-val">${sniper?sniper.winners:0} winners</div>
-        <div class="ppi-sub">outright winners</div>
-      </div>
-      <div class="ppi-card">
-        <h4>🛡 Best Defense</h4>
-        <div class="ppi-name">${defender?defender.name:'—'}</div>
-        <div class="ppi-val">${defender?(defender.pointsConceded/Math.max(1,defender.matchesPlayed)).toFixed(1)+'/match':'—'}</div>
-        <div class="ppi-sub">${defender?defender.matchesPlayed:0} matches</div>
-      </div>
-      <div class="ppi-card">
-        <h4>🔥 On Fire</h4>
-        <div class="ppi-name">${played.length?[...played].sort((a,b)=>b.maxStreak-a.maxStreak)[0].name:'—'}</div>
-        <div class="ppi-val">${played.length?[...played].sort((a,b)=>b.maxStreak-a.maxStreak)[0].maxStreak:0} streak</div>
-        <div class="ppi-sub">consecutive points</div>
-      </div>
-    </div>`;
-
-    const isQuick = tMode==='quick';
-    const extraCols = isQuick?'':'<th>Winners</th><th>Clutch</th><th>Streak</th>';
-    html += `<div class="sh"><h2>All Players — ${isQuick?'Quick Score':'Pro Analytics'} Rankings</h2></div>
-    ${isQuick?'<div class="ibox" style="font-size:.75rem">Quick Score mode — winner/clutch/streak stats not tracked.</div>':''}
-    <div class="stbl-wrap"><table class="stbl">
-      <thead><tr>
-        <th>#</th><th>Player</th><th>Grp</th><th>MP</th><th>W</th>
-        <th>Scored</th><th>Conceded</th>${extraCols}<th>PPI</th><th></th>
-      </tr></thead><tbody>`;
-
-    pStats.forEach(function(p,i){
-      const rank = i+1;
-      const rkC  = rank===1?'rk1':rank===2?'rk2':rank===3?'rk3':'';
-      const gt   = p.group==='A'?'<span class="badge">A</span>':'<span class="badge badge-b">B</span>';
-      html += `<tr class="${rank<=3?'r'+rank:''}">
-        <td><span class="rnk ${rkC}">${rank}</span></td>
-        <td style="font-weight:700;cursor:pointer;color:var(--cream)" onclick="showPlayerDetail('${p.id}')">${p.name}</td>
-        <td>${gt}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:.8rem">${p.matchesPlayed}</td>
-        <td style="font-weight:700;color:var(--green)">${p.matchesWon}</td>
-        <td style="color:var(--fire3);font-family:'JetBrains Mono',monospace">${p.pointsScored||0}</td>
-        <td style="color:#EF5350;font-family:'JetBrains Mono',monospace">${p.pointsConceded||0}</td>
-        ${isQuick?'':(`<td style="color:var(--gold);font-family:'JetBrains Mono',monospace">${p.winners||0}</td>`)}
-        ${isQuick?'':(`<td style="color:var(--gold);font-family:'JetBrains Mono',monospace">${p.clutch20||0}</td>`)}
-        ${isQuick?'':(`<td style="color:var(--green);font-family:'JetBrains Mono',monospace">${p.maxStreak||0}</td>`)}
-        <td><span class="pts-b">${p.ppi||0}</span></td>
-        <td><button class="btn btn-ghost btn-xs" onclick="showPlayerDetail('${p.id}')">Detail</button></td>
-      </tr>`;
-    });
-
-    html += `</tbody></table></div>
-    <div class="ibox" style="margin-top:12px">
-      <strong>PPI Formula:</strong> (Wins × 5) + (Scored / 10) + (Bonus × 2) + AdaptabilityWins ·
-      <strong>Clutch</strong> = pts scored when both ≥20 · <strong>Streak</strong> = longest consecutive run
-    </div>`;
-
-    body.innerHTML = html;
-    if(typeof ORG_VIEW_ON !== 'undefined' && ORG_VIEW_ON) renderOrgView();
-
-  } catch(e) {
-    console.error('refreshStats error:', e);
-    body.innerHTML = `<div class="ibox" style="color:var(--fire3)">
-      ⚠️ Error loading stats: ${e.message}<br>
-      <small style="color:var(--ash)">Check browser console for details.</small><br><br>
-      <button class="btn btn-out btn-sm" onclick="refreshStats()">🔄 Retry</button>
-    </div>`;
+  if(pStats.every(p=>p.matchesPlayed===0)){
+    body.innerHTML='<div class="ibox">No matches played yet. Score some matches to see individual stats!</div>'; return;
   }
+
+  const played=pStats.filter(p=>p.matchesPlayed>0);
+  
+  // Mode banner
+  const modeLabels = {pro:'🎯 Pro Analytics — Full point & shot statistics',quick:'⚡ Quick Score — Team-level statistics',entry:'✏️ Score Entry — Match results only'};
+  const modeCls = {pro:'mlb-pro',quick:'mlb-quick',entry:'mlb-entry'};
+  let html = `<div style="margin-bottom:14px"><span class="mode-label-badge ${modeCls[tMode]}">${modeLabels[tMode]}</span></div>`;
+  
+  // For Score Entry mode — simplified stats only
+  if(tMode === 'entry'){
+    html += renderEntryModeStats(pStats, played);
+    body.innerHTML = html;
+    return;
+  }
+
+  // ── Achievements shelf ──
+  const achvs=computeAchievements(pStats);
+  html+=`<div class="sh"><h2 style="font-size:1rem">🏅 Achievements</h2></div>
+  <div class="achv-shelf">`;
+  achvs.forEach(a=>{
+    const dim=!a.holder;
+    html+=`<div class="achv${dim?' dim':''}">
+      <span class="achv-icon">${a.icon}</span>
+      <span class="achv-name">${a.name}</span>
+      <span class="achv-holder">${a.holder?a.holder.name:'—'}</span>
+      <span class="achv-desc">${a.desc}</span>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // ── Leaderboard cards ──
+  const mvp=pStats[0];
+  const dominant=[...played].sort((a,b)=>b.bonusEarned-a.bonusEarned)[0];
+  const scorer=[...played].sort((a,b)=>b.pointsScored-a.pointsScored)[0];
+  const defender=[...played].sort((a,b)=>(a.pointsConceded/Math.max(1,a.matchesPlayed))-(b.pointsConceded/Math.max(1,b.matchesPlayed)))[0];
+  const clutcher=[...played].sort((a,b)=>b.clutch20-a.clutch20)[0];
+  const sniper=[...played].sort((a,b)=>b.winners-a.winners)[0];
+
+  html+=`<div class="ppi-cards">
+    <div class="ppi-card" style="position:relative">
+      <h4>👑 Tournament MVP</h4>
+      <div class="ppi-name">${mvp.name}</div>
+      <div class="ppi-val">Score: ${mvp.mvpScore}</div>
+      <div class="ppi-sub">
+        ${mvp.matchesWon}W · Bonus: +${Math.round(mvp.bonusEarned*10)/10}
+        ${mvp.mvpMode!=='none'?' · '+mvp.pointsScored+' pts scored':''}
+      </div>
+      <div class="mvp-badge">
+        ${mvp.mvpMode==='full'?'📊 Full data':''}
+        ${mvp.mvpMode==='manual'?'✏️ Estimated (manual scores)':''}
+        ${mvp.mvpMode==='hybrid'?'🔀 Hybrid (mixed data)':''}
+        ${mvp.mvpMode==='none'?'No data':''}
+      </div>
+    </div>
+    <div class="ppi-card">
+      <h4>🏸 Top Scorer</h4>
+      <div class="ppi-name">${scorer?scorer.name:'—'}</div>
+      <div class="ppi-val">${scorer?scorer.pointsScored:0} pts</div>
+      <div class="ppi-sub">${scorer?scorer.matchesPlayed:0} matches</div>
+    </div>
+    <div class="ppi-card">
+      <h4>⚡ Clutch King</h4>
+      <div class="ppi-name">${clutcher&&clutcher.clutch20>0?clutcher.name:'—'}</div>
+      <div class="ppi-val">${clutcher?clutcher.clutch20:0} clutch pts</div>
+      <div class="ppi-sub">scored at 20+ each</div>
+    </div>
+    <div class="ppi-card">
+      <h4>🎯 Sniper</h4>
+      <div class="ppi-name">${sniper&&sniper.winners>0?sniper.name:'—'}</div>
+      <div class="ppi-val">${sniper?sniper.winners:0} winners</div>
+      <div class="ppi-sub">outright winners</div>
+    </div>
+    <div class="ppi-card">
+      <h4>🛡 Best Defense</h4>
+      <div class="ppi-name">${defender?defender.name:'—'}</div>
+      <div class="ppi-val">${defender?(defender.pointsConceded/Math.max(1,defender.matchesPlayed)).toFixed(1)+'/match':'—'}</div>
+      <div class="ppi-sub">${defender?defender.matchesPlayed:0} matches</div>
+    </div>
+    <div class="ppi-card">
+      <h4>🔥 On Fire</h4>
+      <div class="ppi-name">${played.length?[...played].sort((a,b)=>b.maxStreak-a.maxStreak)[0].name:'—'}</div>
+      <div class="ppi-val">${played.length?[...played].sort((a,b)=>b.maxStreak-a.maxStreak)[0].maxStreak:0} streak</div>
+      <div class="ppi-sub">consecutive points</div>
+    </div>
+  </div>`;
+
+  // Full table
+  // Quick mode hides winner/clutch/streak (not tracked); show note
+  const isQuick = (S.tournamentMode||'pro')==='quick';
+  const extraCols = isQuick ? '' : '<th>Winners</th><th>Clutch</th><th>Streak</th>';
+  html+=`<div class="sh"><h2>All Players — ${isQuick?'Quick Score':'Pro Analytics'} Rankings</h2></div>
+  ${isQuick?'<div class="ibox" style="font-size:.75rem">Quick Score mode — winner/clutch/streak stats not tracked. Upgrade to Pro Analytics for full detail.</div>':''}
+  <div class="stbl-wrap"><table class="stbl">
+    <thead><tr>
+      <th>#</th><th>Player</th><th>Grp</th><th>MP</th><th>W</th>
+      <th>Scored</th><th>Conceded</th>${extraCols}<th>PPI</th><th></th>
+    </tr></thead><tbody>`;
+
+  pStats.forEach((p,i)=>{
+    const rank=i+1;
+    const rkC=rank===1?'rk1':rank===2?'rk2':rank===3?'rk3':'';
+    const gt=p.group==='A'?'<span class="badge">A</span>':'<span class="badge badge-b">B</span>';
+    html+=`<tr class="${rank<=3?'r'+rank:''}">
+      <td><span class="rnk ${rkC}">${rank}</span></td>
+      <td style="font-weight:700;cursor:pointer;color:var(--cream)" onclick="showPlayerDetail('${p.id}')">${p.name}</td>
+      <td>${gt}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.8rem">${p.matchesPlayed}</td>
+      <td style="font-weight:700;color:var(--green)">${p.matchesWon}</td>
+      <td style="color:var(--fire3);font-family:'JetBrains Mono',monospace">${p.pointsScored}</td>
+      <td style="color:#EF5350;font-family:'JetBrains Mono',monospace">${p.pointsConceded}</td>
+      ${isQuick?"":(`<td style="color:var(--gold);font-family:'JetBrains Mono',monospace">${p.winners||0}</td>`)}
+      ${isQuick?"":(`<td style="color:var(--gold);font-family:'JetBrains Mono',monospace">${p.clutch20||0}</td>`)}
+      ${isQuick?"":(`<td style="color:var(--green);font-family:'JetBrains Mono',monospace">${p.maxStreak||0}</td>`)}
+      <td><span class="pts-b">${p.ppi}</span></td>
+      <td><button class="btn btn-ghost btn-xs" onclick="showPlayerDetail('${p.id}')">Detail</button></td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>
+  <div class="ibox" style="margin-top:12px">
+    <strong>PPI Formula:</strong> (Wins × 5) + (Scored / 10) + (Bonus × 2) + AdaptabilityWins · 
+    <strong>Clutch</strong> = pts scored when both ≥20 · <strong>Streak</strong> = longest consecutive scoring run
+  </div>`;
+
+  body.innerHTML=html;
+  // Re-render organizer view if it's visible
+  if(ORG_VIEW_ON) renderOrgView();
 }
 
 function showPlayerDetail(pid){
@@ -5495,9 +5458,8 @@ function toast(msg){
 // ═══════════════════════════════════════════════════════════
 
 function refreshExportPage(){
-  // Update any session-specific info on export page
-  const el = document.getElementById('export-session-id');
-  if(el) el.textContent = S.sessionId || '—';
+  const el = document.getElementById('export-sid');
+  if(el) el.textContent = 'Session: ' + (S.sessionId || '—');
 }
 window.runTests=function(){
   let pass=0,fail=0;
