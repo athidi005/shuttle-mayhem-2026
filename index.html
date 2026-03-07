@@ -2259,6 +2259,7 @@ function goTo(id){
   if(id==='stats'){ refreshStats(); if(typeof ORG_VIEW_ON!=='undefined'&&ORG_VIEW_ON) renderOrgView(); }
   if(id==='history') histRefreshList();
   if(id==='rules'){ refreshRulesConfigUI(); }
+  if(id==='export'){ if(typeof refreshExportPage==='function') refreshExportPage(); }
 }
 function markDone(id){ const t=document.getElementById('nt-'+id); if(t) t.classList.add('done'); }
 function setSyncDot(state){
@@ -2662,10 +2663,8 @@ function openLiveModal(fid){
     startSec.style.display='none'; scoringSec.style.display='none'; endedSec.style.display='block';
     const ms2=f.matchState;
     document.getElementById('lm-result-text').textContent=
-      `🏆 Group ${ms2.winner} wins! Score: ${ms2.setsWonA}–${ms2.setsWonB} sets`;
-    document.getElementById('lm-bonus-info').innerHTML=
-      `Match points: A = <strong style="color:var(--fire3)">${ms2.matchPointsA}</strong> pts (bonus: +${ms2.bonusA}) &nbsp;|&nbsp;
-       B = <strong style="color:var(--blue)">${ms2.matchPointsB}</strong> pts (bonus: +${ms2.bonusB})`;
+      `🏆 ${gName(ms2.winner)} wins! Score: ${ms2.setsWonA}–${ms2.setsWonB} sets`;
+    document.getElementById('lm-bonus-info').innerHTML = renderBonusInfo(ms2);
   }
 
   document.getElementById('live-modal').classList.remove('hid');
@@ -2712,10 +2711,10 @@ function startMatch(){
   
   // For entry mode, use the saved entry sets
   if(mode === 'entry'){
-    // Sync inputs
+    // Sync from DOM — try both id patterns used by different entry UIs
     ENTRY_SETS.forEach((s,i)=>{
-      const aEl=document.getElementById('entry-a-'+i);
-      const bEl=document.getElementById('entry-b-'+i);
+      const aEl = document.getElementById('entry-a-'+i) || document.getElementById('se-a-'+i);
+      const bEl = document.getElementById('entry-b-'+i) || document.getElementById('se-b-'+i);
       if(aEl) s.a = parseInt(aEl.value)||0;
       if(bEl) s.b = parseInt(bEl.value)||0;
     });
@@ -2760,7 +2759,7 @@ function saveScoreEntryFromSets(f){
   if(ms.sets.length===0) ms.sets = [{pointsA:0,pointsB:0,winner:null,events:[],setIndex:0}];
   ms.setsWonA = ms.sets.filter(s=>s.winner==='A').length;
   ms.setsWonB = ms.sets.filter(s=>s.winner==='B').length;
-  ms.winner = ms.setsWonA >= ms.setsWonB ? 'A' : 'B';
+  ms.winner = ms.setsWonA > ms.setsWonB ? 'A' : ms.setsWonB > ms.setsWonA ? 'B' : (ms.sets[0]&&ms.sets[0].pointsA > (ms.sets[0].pointsB||0) ? 'A' : 'B');
   ms.currentSetIndex = ms.sets.length - 1;
   ms.scoringMode = 'entry';
   computeMatchPoints(f, ms);
@@ -3187,8 +3186,8 @@ function setScoringMode(mode){
   if(posSection) posSection.style.display = mode==='entry'?'none':'block';
   if(entrySection) entrySection.style.display = mode==='entry'?'block':'none';
   if(startBtn) startBtn.textContent = mode==='entry'? '✏️ Record Result' : '🏸 Start Match';
-  // Update score-entry sets display
-  if(mode==='entry') renderEntrySetInputs();
+  // Update score-entry sets display — reset ENTRY_SETS so it re-inits for current match type
+  if(mode==='entry'){ ENTRY_SETS=[]; renderEntrySetInputs(); }
 }
 
 function updateScoringModeControls(){
@@ -3277,18 +3276,29 @@ function updateQuickLabels(){
 function renderEntrySetInputs(){
   const container = document.getElementById('score-entry-sets-input');
   if(!container) return;
+  const f = S.fixtures[LM.fixtureIdx];
+  // Init ENTRY_SETS based on match type
+  if(!ENTRY_SETS || ENTRY_SETS.length === 0){
+    ENTRY_SETS = [{a:'',b:''}];
+    if(f && f.matchType === 'BO3') ENTRY_SETS = [{a:'',b:''},{a:'',b:''},{a:'',b:''}];
+  } else if(f && f.matchType === 'BO3' && ENTRY_SETS.length < 2){
+    while(ENTRY_SETS.length < 2) ENTRY_SETS.push({a:'',b:''});
+  }
   container.innerHTML = ENTRY_SETS.map((s,i)=>`
     <div style="margin-bottom:8px">
-      <div style="font-size:.7rem;color:var(--ash);margin-bottom:4px">Set ${i+1}</div>
+      <div style="font-size:.7rem;color:var(--ash);margin-bottom:4px">Set ${i+1}${f&&f.matchType==='BO3'?' (Best of 3)':''}</div>
       <div class="score-entry-form">
-        <input class="score-entry-input" type="number" min="0" max="31" placeholder="0" 
+        <input class="score-entry-input" type="number" min="0" max="31" placeholder="0"
                value="${s.a}" oninput="updateEntrySet(${i},'a',this.value)" id="entry-a-${i}">
         <div class="score-entry-vs">–</div>
-        <input class="score-entry-input" type="number" min="0" max="31" placeholder="0" 
+        <input class="score-entry-input" type="number" min="0" max="31" placeholder="0"
                value="${s.b}" oninput="updateEntrySet(${i},'b',this.value)" id="entry-b-${i}">
       </div>
     </div>
-  `).join('');
+  `).join('') + (f&&f.matchType==='BO3'?`
+    <div style="font-size:.7rem;color:var(--ash);margin-top:4px">
+      ✏️ 3rd set only needed if tied 1–1. Leave blank if not played.
+    </div>`:'');
 }
 
 function updateEntrySet(idx,side,val){
@@ -3305,17 +3315,24 @@ function renderEntrySetsInScoring(){
   const container = document.getElementById('entry-sets-container');
   if(!container) return;
   const f = S.fixtures[LM.fixtureIdx]; if(!f) return;
+  // Reset ENTRY_SETS for this match type
   ENTRY_SETS = [{a:'',b:''}];
-  if(f.matchType==='BO3') ENTRY_SETS = [{a:'',b:''},{a:'',b:''}];
+  if(f.matchType==='BO3') ENTRY_SETS = [{a:'',b:''},{a:'',b:''},{a:'',b:''}];
+  const isBO3 = f.matchType === 'BO3';
   container.innerHTML = ENTRY_SETS.map((s,i)=>`
-    <div style="margin-bottom:8px">
-      <div style="font-size:.7rem;color:var(--ash);margin-bottom:4px">Set ${i+1} — ${gName('A')} vs ${gName('B')}</div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:.72rem;color:var(--ash);margin-bottom:4px">
+        Set ${i+1} — ${gName('A')} vs ${gName('B')}
+        ${isBO3 && i===2 ? '<span style="color:var(--stone3)">(3rd set — only if 1–1)</span>' : ''}
+      </div>
       <div class="score-entry-form">
         <input class="score-entry-input" type="number" min="0" max="31" placeholder="0"
-               oninput="updateEntrySet(${i},'a',this.value)" id="se-a-${i}" style="font-size:1.5rem;padding:8px 5px">
+               oninput="updateEntrySet(${i},'a',this.value)" id="entry-a-${i}"
+               style="font-size:1.5rem;padding:8px 5px">
         <div class="score-entry-vs">–</div>
         <input class="score-entry-input" type="number" min="0" max="31" placeholder="0"
-               oninput="updateEntrySet(${i},'b',this.value)" id="se-b-${i}" style="font-size:1.5rem;padding:8px 5px">
+               oninput="updateEntrySet(${i},'b',this.value)" id="entry-b-${i}"
+               style="font-size:1.5rem;padding:8px 5px">
       </div>
     </div>
   `).join('');
@@ -4376,7 +4393,8 @@ function updateTimeline(){
 // ⑫ STANDINGS
 // ═══════════════════════════════════════════════════════════
 function refreshStandings(){
-  const {totalA, totalB, matchSummary} = computeTeamTotals();
+  const {totalA, totalB} = computeTeamTotals();
+  const matchSummary = null;
   const body=document.getElementById('standings-body');
 
   const winnerBanner=totalA>totalB?'win-a':totalB>totalA?'win-b':'win-tie';
@@ -4863,17 +4881,17 @@ function refreshStats(){
   html+=`<div class="ppi-cards">
     <div class="ppi-card" style="position:relative">
       <h4>👑 Tournament MVP</h4>
-      <div class="ppi-name">\${mvp.name}</div>
-      <div class="ppi-val">Score: \${mvp.mvpScore}</div>
+      <div class="ppi-name">${mvp.name}</div>
+      <div class="ppi-val">Score: ${mvp.mvpScore}</div>
       <div class="ppi-sub">
-        \${mvp.matchesWon}W · Bonus: +\${Math.round(mvp.bonusEarned*10)/10}
-        \${mvp.mvpMode!=='none'?' · '+mvp.pointsScored+' pts scored':''}
+        ${mvp.matchesWon}W · Bonus: +${Math.round(mvp.bonusEarned*10)/10}
+        ${mvp.mvpMode!=='none'?' · '+mvp.pointsScored+' pts scored':''}
       </div>
       <div class="mvp-badge">
-        \${mvp.mvpMode==='full'?'📊 Full data':''}
-        \${mvp.mvpMode==='manual'?'✏️ Estimated (manual scores)':''}
-        \${mvp.mvpMode==='hybrid'?'🔀 Hybrid (mixed data)':''}
-        \${mvp.mvpMode==='none'?'No data':''}
+        ${mvp.mvpMode==='full'?'📊 Full data':''}
+        ${mvp.mvpMode==='manual'?'✏️ Estimated (manual scores)':''}
+        ${mvp.mvpMode==='hybrid'?'🔀 Hybrid (mixed data)':''}
+        ${mvp.mvpMode==='none'?'No data':''}
       </div>
     </div>
     <div class="ppi-card">
