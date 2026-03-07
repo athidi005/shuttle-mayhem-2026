@@ -912,7 +912,7 @@ a,button,[onclick]{touch-action:manipulation;}
   <button class="ntab"        id="nt-groupa"   onclick="goTo('groupa')">⚡ Group A</button>
   <button class="ntab"        id="nt-groupb"   onclick="goTo('groupb')">💎 Group B</button>
   <button class="ntab"        id="nt-fixtures" onclick="goTo('fixtures')">🏸 Fixtures</button>
-  <button class="ntab"        id="nt-standings"onclick="goTo('standings')">🏅 Standings</button>
+  <button class="ntab"        id="nt-standings" onclick="goTo('standings')">🏅 Standings</button>
   <button class="ntab"        id="nt-stats"    onclick="goTo('stats')">📊 Stats</button>
   <button class="ntab"        id="nt-export"   onclick="goTo('export')">📄 Export</button>
   <button class="ntab"        id="nt-history"  onclick="goTo('history')">🕐 History</button>
@@ -2242,6 +2242,7 @@ function onStateUpdate(){
   restoreUI();
   if(document.getElementById('pg-standings').classList.contains('active')) refreshStandings();
   if(document.getElementById('pg-stats').classList.contains('active')) refreshStats();
+  if(document.getElementById('pg-fixtures').classList.contains('active')) renderFixturesUI();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2774,6 +2775,7 @@ function saveScoreEntryFromSets(f){
     `${gName('A')}: <strong style="color:var(--teal)">${ms.matchPointsA||0}</strong> pts &nbsp;|&nbsp;
      ${gName('B')}: <strong style="color:var(--blue)">${ms.matchPointsB||0}</strong> pts`;
   updateScoreboard();
+  onStateUpdate();
   setTimeout(()=>showMatchSummary(f,ms),500);
 }
 
@@ -3241,7 +3243,7 @@ function quickScorePoint(team){
   } else {
     appendPointFB(f.id, event);
     const matchEnded = checkMatchEnd(f, ms);
-    if(matchEnded){ computeMatchPoints(f,ms); f.status='completed'; }
+    if(matchEnded){ computeMatchPoints(f,ms); f.status='completed'; onStateUpdate(); }
     else { ms.currentSetIndex++; ms.sets.push(newSet()); }
     saveLocal(); saveFB(); updateScoreboard(); updateTimeline();
     if(matchEnded){
@@ -3360,26 +3362,28 @@ function addEntrySet(){
 function saveScoreEntry(){
   const f = S.fixtures[LM.fixtureIdx]; if(!f) return;
   const ms = f.matchState;
-  // Sync inputs to ENTRY_SETS
+  // Sync from DOM — read entry-a-i IDs (matching renderEntrySetsInScoring)
   ENTRY_SETS.forEach((s,i)=>{
-    const aEl=document.getElementById('se-a-'+i);
-    const bEl=document.getElementById('se-b-'+i);
+    const aEl = document.getElementById('entry-a-'+i) || document.getElementById('se-a-'+i);
+    const bEl = document.getElementById('entry-b-'+i) || document.getElementById('se-b-'+i);
     if(aEl) s.a = parseInt(aEl.value)||0;
     if(bEl) s.b = parseInt(bEl.value)||0;
   });
-  const valid = ENTRY_SETS.every(s=>s.a>=0&&s.b>=0&&(s.a>0||s.b>0));
-  if(!valid){ toast('Enter valid scores for all sets'); return; }
-  // Build match state from entered scores
+  // Filter out blank sets (3rd BO3 set may be empty if not played)
+  const filledSets = ENTRY_SETS.filter(s=>(parseInt(s.a)||0)+(parseInt(s.b)||0)>0);
+  if(!filledSets.length){ toast('Enter at least one set score'); return; }
   ms.status = 'completed';
-  ms.sets = ENTRY_SETS.map((s,i)=>{
+  ms.sets = filledSets.map((s,i)=>{
     const a=parseInt(s.a)||0, b=parseInt(s.b)||0;
     const winner = a>b?'A':b>a?'B':null;
     return { pointsA:a, pointsB:b, winner, events:[], setIndex:i };
   });
   ms.setsWonA = ms.sets.filter(s=>s.winner==='A').length;
   ms.setsWonB = ms.sets.filter(s=>s.winner==='B').length;
-  ms.winner = ms.setsWonA > ms.setsWonB ? 'A' : 'B';
+  ms.winner = ms.setsWonA > ms.setsWonB ? 'A' : ms.setsWonB > ms.setsWonA ? 'B'
+              : (ms.sets[0] && ms.sets[0].pointsA > ms.sets[0].pointsB ? 'A' : 'B');
   ms.currentSetIndex = ms.sets.length - 1;
+  ms.scoringMode = 'entry';
   computeMatchPoints(f, ms);
   f.status = 'completed';
   saveLocal(); saveFB();
@@ -3387,9 +3391,8 @@ function saveScoreEntry(){
   document.getElementById('lm-scoring-section').style.display='none';
   document.getElementById('lm-ended-section').style.display='block';
   document.getElementById('lm-result-text').textContent=`🏆 ${gName(ms.winner)} wins!`;
-  document.getElementById('lm-bonus-info').innerHTML=
-    `A: <strong style="color:var(--teal)">${ms.matchPointsA||0}</strong> pts &nbsp;|&nbsp;
-     B: <strong style="color:var(--blue)">${ms.matchPointsB||0}</strong> pts`;
+  document.getElementById('lm-bonus-info').innerHTML=renderBonusInfo(ms);
+  onStateUpdate();
   setTimeout(()=>showMatchSummary(f,ms),400);
 }
 
@@ -4073,6 +4076,7 @@ function bsCommitPoint(){
     if(matchEnded){
       computeMatchPoints(f, ms);
       f.status='completed';
+      onStateUpdate();
     } else {
       ms.currentSetIndex++;
       ms.sets.push(newSet());
@@ -4339,7 +4343,7 @@ function redoLastPoint(){
   const setEnded=checkSetEnd(ms, snap.setIdx);
   if(setEnded){
     const matchEnded=checkMatchEnd(f, ms);
-    if(matchEnded){ computeMatchPoints(f, ms); f.status='completed'; }
+    if(matchEnded){ computeMatchPoints(f, ms); f.status='completed'; onStateUpdate(); }
     else { ms.currentSetIndex++; ms.sets.push(newSet()); }
   }
   saveLocal(); saveFB();
@@ -5360,6 +5364,12 @@ function toast(msg){
 // ═══════════════════════════════════════════════════════════
 // ⑲ TESTS (run in console: runTests())
 // ═══════════════════════════════════════════════════════════
+
+function refreshExportPage(){
+  // Update any session-specific info on export page
+  const el = document.getElementById('export-session-id');
+  if(el) el.textContent = S.sessionId || '—';
+}
 window.runTests=function(){
   let pass=0,fail=0;
   function assert(label,got,expected){
