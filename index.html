@@ -838,6 +838,36 @@ a,button,[onclick]{touch-action:manipulation;}
   .pairing-match-row{grid-template-columns:1fr 36px 1fr 28px;gap:5px;padding:8px 7px;}
   .pairing-select{font-size:.75rem;padding:6px 5px;}
 }
+
+/* ─── Rules Config UI ─── */
+.rc-section{background:rgba(22,27,34,.95);border:1.5px solid var(--stone2);
+  border-radius:10px;padding:16px 18px;margin-top:14px;}
+.rc-section h4{margin:0 0 4px;font-size:.9rem;color:var(--cream);}
+.rc-section-hint{font-size:.72rem;color:var(--ash);margin-bottom:12px;line-height:1.5;}
+.rc-group{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06);}
+.rc-group:last-child{border-bottom:none;margin-bottom:0;}
+.rc-group-title{font-size:.74rem;font-weight:700;color:var(--teal);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.rc-row{display:grid;grid-template-columns:1fr 72px;gap:8px;
+  align-items:center;margin-bottom:6px;}
+.rc-label{font-size:.76rem;color:var(--stone3);}
+.rc-inp{background:var(--stone);border:1.5px solid var(--stone2);border-radius:6px;
+  color:var(--cream);padding:6px 8px;font-family:'Outfit',sans-serif;
+  font-size:.85rem;text-align:center;width:100%;box-sizing:border-box;}
+.rc-inp:focus{outline:none;border-color:var(--teal);}
+.rc-hint{font-size:.68rem;color:var(--ash);line-height:1.4;margin-top:2px;}
+.rc-preview{background:rgba(0,0,0,.3);border:1px solid var(--stone2);
+  border-radius:8px;padding:10px 12px;margin-bottom:14px;}
+.rc-preview table{width:100%;border-collapse:collapse;font-size:.75rem;}
+.rc-preview td{padding:3px 6px;color:var(--ash);}
+.rc-preview td:last-child{text-align:right;font-weight:700;}
+.bd-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-top:6px;}
+.bd-table td{padding:2px 4px;}
+.bd-table tr.bd-total td{border-top:1px solid var(--stone2);
+  font-weight:700;color:var(--teal);padding-top:4px;}
+.mvp-badge{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(0,212,170,.1);border:1px solid var(--teal);
+  border-radius:8px;padding:4px 10px;font-size:.7rem;color:var(--teal);margin-top:4px;}
 </style>
 </head>
 <body>
@@ -1002,18 +1032,92 @@ a,button,[onclick]{touch-action:manipulation;}
       </ul>
     </div>
     <div class="rcard">
-      <h4>🏆 Match Points + Bonus</h4>
-      <table class="score-tbl">
-        <thead><tr><th>Loser's Score</th><th>Winner Gets</th></tr></thead>
-        <tbody>
-          <tr><td>0–10</td><td style="color:var(--gold);font-weight:700">2 + 2 bonus = 4pts</td></tr>
-          <tr><td>11–16</td><td style="color:var(--fire3);font-weight:700">2 + 1 bonus = 3pts</td></tr>
-          <tr><td>17–29</td><td style="color:var(--sand)">2 pts (no bonus)</td></tr>
-          <tr><td>Loss</td><td style="color:var(--ash)">0 pts</td></tr>
-        </tbody>
-      </table>
-      <p style="font-size:.72rem;color:var(--ash);margin-top:6px;">Bonus based on loser's score in the deciding set. Max 4 pts per match.</p>
+      <h4>🏆 Match Points Preview</h4>
+      <div class="rc-preview">
+        <table id="rules-preview-table" style="width:100%;border-collapse:collapse;font-size:.75rem">
+          <tr><td style="color:var(--ash)">Loading…</td></tr>
+        </table>
+      </div>
+      <p style="font-size:.68rem;color:var(--ash)">Live preview — updates as you change settings below.</p>
     </div>
+  </div><!-- end rgrid -->
+
+  <!-- ═══ SCORING RULES CONFIG ═══ -->
+  <div class="rc-section">
+    <h4>⚙️ Scoring Rules — Organiser Configuration</h4>
+    <p class="rc-section-hint">
+      Configure all bonus rules here. Changes apply immediately to all standings and exports.
+      <br><strong>Total = Base win pts + Direct bonus (BO3 only) + Set bonus(es) for each set won.</strong>
+    </p>
+
+    <div class="rc-group">
+      <div class="rc-group-title">🏸 Base Win Points</div>
+      <div class="rc-row">
+        <label class="rc-label">Points awarded for each match win</label>
+        <input type="number" id="rc-base-win" class="rc-inp" min="0" max="20" step="1" value="2" oninput="updateRulesPreview()">
+      </div>
+    </div>
+
+    <div class="rc-group">
+      <div class="rc-group-title">1️⃣ Single-Set Match — Score Bonus</div>
+      <div class="rc-hint" style="margin-bottom:8px">Extra points added to base win, based on the loser's score in the single set.</div>
+      <div class="rc-row">
+        <label class="rc-label">Loser scored 0–10 → bonus</label>
+        <input type="number" id="rc-s1" class="rc-inp" min="0" max="20" step="1" value="2" oninput="updateRulesPreview()">
+      </div>
+      <div class="rc-row">
+        <label class="rc-label">Loser scored 11–15 → bonus</label>
+        <input type="number" id="rc-s2" class="rc-inp" min="0" max="20" step="1" value="1" oninput="updateRulesPreview()">
+      </div>
+      <div class="rc-row">
+        <label class="rc-label">Loser scored 16+ → bonus</label>
+        <input type="number" id="rc-s3" class="rc-inp" min="0" max="20" step="1" value="0" oninput="updateRulesPreview()">
+      </div>
+    </div>
+
+    <div class="rc-group">
+      <div class="rc-group-title">🏆 Best-of-3 — Direct Result Bonus</div>
+      <div class="rc-hint" style="margin-bottom:8px">
+        Extra bonus based on whether the winner won 2–0 (sweep) or 2–1.
+        This is added on top of base win pts and any per-set score bonuses.
+      </div>
+      <div class="rc-row">
+        <label class="rc-label">Won 2–0 (sweep) → direct bonus</label>
+        <input type="number" id="rc-d20" class="rc-inp" min="0" max="20" step="1" value="3" oninput="updateRulesPreview()">
+      </div>
+      <div class="rc-row">
+        <label class="rc-label">Won 2–1 → direct bonus</label>
+        <input type="number" id="rc-d21" class="rc-inp" min="0" max="20" step="1" value="0" oninput="updateRulesPreview()">
+      </div>
+    </div>
+
+    <div class="rc-group">
+      <div class="rc-group-title">📊 Best-of-3 — Per-Set Score Bonus</div>
+      <div class="rc-hint" style="margin-bottom:8px">
+        For <em>each set won</em> by the match winner, apply a bonus based on the loser's score <em>in that set</em>.
+        Set bonuses are summed across all sets the winner won.
+        <br>Example (2–0 with Set 1 loser=9, Set 2 loser=14): +2 + +1 = +3 set bonus.
+      </div>
+      <div class="rc-row">
+        <label class="rc-label">Loser scored 0–10 → per-set bonus</label>
+        <input type="number" id="rc-b1" class="rc-inp" min="0" max="20" step="1" value="2" oninput="updateRulesPreview()">
+      </div>
+      <div class="rc-row">
+        <label class="rc-label">Loser scored 11–15 → per-set bonus</label>
+        <input type="number" id="rc-b2" class="rc-inp" min="0" max="20" step="1" value="1" oninput="updateRulesPreview()">
+      </div>
+      <div class="rc-row">
+        <label class="rc-label">Loser scored 16+ → per-set bonus</label>
+        <input type="number" id="rc-b3" class="rc-inp" min="0" max="20" step="1" value="0" oninput="updateRulesPreview()">
+      </div>
+    </div>
+
+    <button class="btn btn-sm" onclick="saveRulesConfig()" style="width:100%">
+      💾 Save Rules &amp; Recalculate Standings
+    </button>
+  </div>
+
+  <div class="rgrid">
     <div class="rcard">
       <h4>🎯 Fixed Pair Matchups</h4>
       <ul>
@@ -1750,6 +1854,38 @@ const COURT_SUGGESTIONS = {
   1: [1,2,3,null], 2: [1,2,3,null], 3: [1,2,3,null],
   4: [1,2,null,null], 5: [1,2,null,null]
 };
+// ─── Default rules config ─────────────────────────────────────
+var DEFAULT_RULES = {
+  baseWinPoints: 2,
+  singleSetBonuses: [
+    {min:0, max:10, bonus:2},
+    {min:11, max:15, bonus:1},
+    {min:16, max:999, bonus:0}
+  ],
+  bo3DirectBonuses: {win20:3, win21:0},
+  bo3PerSetBonuses: [
+    {min:0, max:10, bonus:2},
+    {min:11, max:15, bonus:1},
+    {min:16, max:999, bonus:0}
+  ]
+};
+function getRules(){
+  var s = (S&&S.rulesConfig) ? S.rulesConfig : {};
+  return {
+    baseWinPoints:    s.baseWinPoints    != null ? s.baseWinPoints    : DEFAULT_RULES.baseWinPoints,
+    singleSetBonuses: s.singleSetBonuses || DEFAULT_RULES.singleSetBonuses,
+    bo3DirectBonuses: s.bo3DirectBonuses || DEFAULT_RULES.bo3DirectBonuses,
+    bo3PerSetBonuses: s.bo3PerSetBonuses || DEFAULT_RULES.bo3PerSetBonuses
+  };
+}
+function getBonusForScore(score, ranges){
+  for(var i=0;i<ranges.length;i++){
+    var r=ranges[i];
+    if(score>=r.min && score<=r.max) return r.bonus;
+  }
+  return 0;
+}
+
 
 const REASONS = [
   {code:'winner',  label:'Winner',        icon:'🏸'},
@@ -2004,7 +2140,9 @@ function newSession(){
   SID = 'SM'+Date.now().toString(36).toUpperCase().slice(-6);
   S = { sessionId:SID, created:new Date().toISOString(), passcodeHash:'',
         groupA:[], groupB:[], fixtures:[],
-        groupNameA:'Group A', groupNameB:'Group B' };
+        groupNameA:'Group A', groupNameB:'Group B',
+        rulesConfig: null, customFormat: null,
+        tournamentMode:'pro'};
   saveLocal();
   setTimeout(()=>{ updateHomeBanner(); updateBrowserURL(); }, 50);
 }
@@ -2107,6 +2245,7 @@ function goTo(id){
   if(id==='standings') refreshStandings();
   if(id==='stats'){ refreshStats(); if(typeof ORG_VIEW_ON!=='undefined'&&ORG_VIEW_ON) renderOrgView(); }
   if(id==='history') histRefreshList();
+  if(id==='rules'){ refreshRulesConfigUI(); }
 }
 function markDone(id){ const t=document.getElementById('nt-'+id); if(t) t.classList.add('done'); }
 function setSyncDot(state){
@@ -2715,6 +2854,77 @@ const DEVICE_ID = 'DEV_' + Math.random().toString(36).slice(2,8).toUpperCase();
 // TOURNAMENT MODE (set once, applies to all matches)
 // ═══════════════════════════════════════════════════════════════
 
+
+// ════════════════════════════════════════════════════════
+// RULES CONFIG — save / load / preview
+// ════════════════════════════════════════════════════════
+function saveRulesConfig(){
+  function rn(id){ return parseFloat(document.getElementById(id).value)||0; }
+  S.rulesConfig = {
+    baseWinPoints: rn('rc-base-win'),
+    singleSetBonuses:[
+      {min:0,  max:10,  bonus:rn('rc-s1')},
+      {min:11, max:15,  bonus:rn('rc-s2')},
+      {min:16, max:999, bonus:rn('rc-s3')}
+    ],
+    bo3DirectBonuses:{win20:rn('rc-d20'), win21:rn('rc-d21')},
+    bo3PerSetBonuses:[
+      {min:0,  max:10,  bonus:rn('rc-b1')},
+      {min:11, max:15,  bonus:rn('rc-b2')},
+      {min:16, max:999, bonus:rn('rc-b3')}
+    ]
+  };
+  saveLocal(); saveFB();
+  recomputeAllMatchPoints();
+  refreshStandings();
+  refreshStats();
+  updateRulesPreview();
+  toast('✅ Rules saved — standings recalculated!');
+}
+
+function recomputeAllMatchPoints(){
+  (S.fixtures||[]).forEach(function(f){
+    var ms=f.matchState||{};
+    if(ms.status==='completed'&&ms.winner) computeMatchPoints(f,ms);
+  });
+}
+
+function refreshRulesConfigUI(){
+  var r=getRules();
+  function sv(id,v){ var el=document.getElementById(id); if(el) el.value=v; }
+  sv('rc-base-win', r.baseWinPoints);
+  sv('rc-s1', r.singleSetBonuses[0]?r.singleSetBonuses[0].bonus:2);
+  sv('rc-s2', r.singleSetBonuses[1]?r.singleSetBonuses[1].bonus:1);
+  sv('rc-s3', r.singleSetBonuses[2]?r.singleSetBonuses[2].bonus:0);
+  sv('rc-d20', r.bo3DirectBonuses.win20);
+  sv('rc-d21', r.bo3DirectBonuses.win21);
+  sv('rc-b1', r.bo3PerSetBonuses[0]?r.bo3PerSetBonuses[0].bonus:2);
+  sv('rc-b2', r.bo3PerSetBonuses[1]?r.bo3PerSetBonuses[1].bonus:1);
+  sv('rc-b3', r.bo3PerSetBonuses[2]?r.bo3PerSetBonuses[2].bonus:0);
+  updateRulesPreview();
+}
+
+function updateRulesPreview(){
+  var el=document.getElementById('rules-preview-table');
+  if(!el) return;
+  function rn(id){var e=document.getElementById(id);return e?parseFloat(e.value)||0:0;}
+  var base=rn('rc-base-win');
+  var s1=rn('rc-s1'),s2=rn('rc-s2'),s3=rn('rc-s3');
+  var d20=rn('rc-d20'),d21=rn('rc-d21');
+  var b1=rn('rc-b1'),b2=rn('rc-b2'),b3=rn('rc-b3');
+  el.innerHTML=
+    '<tr><td colspan="2" style="color:var(--teal);font-weight:700;padding-bottom:5px">1-Set Match</td></tr>'
+   +'<tr><td style="color:var(--ash)">Loser 0–10</td><td style="color:var(--gold);text-align:right">'+(base+s1)+' pts ('+base+'+'+s1+')</td></tr>'
+   +'<tr><td style="color:var(--ash)">Loser 11–15</td><td style="color:var(--fire3);text-align:right">'+(base+s2)+' pts ('+base+'+'+s2+')</td></tr>'
+   +'<tr><td style="color:var(--ash)">Loser 16+</td><td style="color:var(--ash);text-align:right">'+(base+s3)+' pts ('+base+'+'+s3+')</td></tr>'
+   +'<tr><td colspan="2" style="color:var(--teal);font-weight:700;padding:8px 0 5px">Best-of-3 Match (2–0 example: 21–9, 21–14)</td></tr>'
+   +'<tr><td style="color:var(--ash)">Base win</td><td style="text-align:right;color:var(--cream)">+'+base+'</td></tr>'
+   +'<tr><td style="color:var(--gold)">2–0 direct bonus</td><td style="text-align:right;color:var(--gold)">+'+d20+'</td></tr>'
+   +'<tr><td style="color:var(--fire3)">Set 1 (loser 9)</td><td style="text-align:right;color:var(--fire3)">+'+b1+'</td></tr>'
+   +'<tr><td style="color:var(--fire3)">Set 2 (loser 14)</td><td style="text-align:right;color:var(--fire3)">+'+b2+'</td></tr>'
+   +'<tr style="border-top:1px solid var(--stone2)"><td style="font-weight:700;color:var(--cream)">Total</td><td style="text-align:right;color:var(--teal);font-weight:700">'+(base+d20+b1+b2)+' pts</td></tr>';
+}
+
 function setTournamentMode(mode){
   // Check if any matches have been played — lock if so
   const anyPlayed = S.fixtures.some(f=>f.matchState && f.matchState.status !== 'not_started');
@@ -2754,48 +2964,35 @@ function refreshTournamentModeUI(){
 
 // Show bonus section when a match completes
 function showBonusSection(f, ms){
-  const section = document.getElementById('manual-bonus-section');
+  // Auto-compute with current rules config
+  computeMatchPoints(f, ms);
+  saveLocal(); saveFB();
+  refreshStandings();
+  var section = document.getElementById('manual-bonus-section');
   if(!section) return;
-  section.style.display = 'block';
-  
-  const loserScore = ms.loserScore !== undefined ? ms.loserScore :
-    (ms.winner==='A' ? (ms.sets[ms.currentSetIndex]||{}).pointsB : (ms.sets[ms.currentSetIndex]||{}).pointsA) || 0;
-  ms.loserScore = loserScore;
-  
-  const loserTxt = document.getElementById('bonus-loser-score-txt');
-  if(loserTxt) loserTxt.textContent = `Loser's final score: ${loserScore}`;
-  
-  // Suggest bonus based on loser score (organizer can override)
-  let suggestedBonus = 0;
-  if(loserScore <= 10) suggestedBonus = 2;
-  else if(loserScore <= 16) suggestedBonus = 1;
-  
-  // Pre-select the suggested bonus
-  setMatchBonus(suggestedBonus, false); // false = don't save yet
+  var bd = ms.pointsBreakdown||{};
+  var rows='';
+  rows+='<tr><td style="color:var(--ash)">Win points</td><td style="text-align:right;color:var(--cream)">+'+(bd.baseWinPoints||2)+'</td></tr>';
+  if(!bd.isSingle && bd.directBonus){
+    rows+='<tr><td style="color:var(--gold)">Direct result bonus</td><td style="text-align:right;color:var(--gold)">+'+bd.directBonus+'</td></tr>';
+  }
+  (bd.setBonuses||[]).forEach(function(sb,i){
+    var lbl=bd.isSingle?'Score bonus (loser: '+sb.loserScore+')':'Set '+(i+1)+' bonus (loser: '+sb.loserScore+')';
+    rows+='<tr><td style="color:var(--fire3)">'+lbl+'</td><td style="text-align:right;color:var(--fire3)">+'+sb.bonus+'</td></tr>';
+  });
+  rows+='<tr style="border-top:1px solid var(--stone2)"><td style="color:var(--teal);font-weight:700">Total</td><td style="text-align:right;color:var(--teal);font-weight:700">'+(bd.total||0)+' pts</td></tr>';
+  section.innerHTML='<div style="font-size:.74rem;margin-bottom:6px;color:var(--ash)">📊 Points breakdown (auto-calculated):</div>'
+    +'<table class="bd-table" style="width:100%">'+rows+'</table>';
+  section.style.display='block';
+  var bonusEl=document.getElementById('lm-bonus-info');
+  if(bonusEl) bonusEl.innerHTML=renderBonusInfo(ms);
 }
 
 function setMatchBonus(bonus, andSave){
-  // Update chip UI
-  [0,1,2].forEach(b=>{
-    const chip = document.getElementById('bonus-chip-'+b);
-    if(chip) chip.classList.toggle('active', b===bonus);
-  });
-  
-  const totalEl = document.getElementById('bonus-total-txt');
-  const total = Math.min(4, 2 + bonus);
-  if(totalEl) totalEl.textContent = `Match points: 2 + ${bonus} bonus = ${total} total`;
-  
+  // Legacy shim — bonus is now auto-computed from rules config
   if(andSave !== false){
-    // Apply to current fixture
-    const f = S.fixtures[LM.fixtureIdx]; if(!f) return;
-    applyMatchBonus(f.id, bonus);
-    // Update lm-bonus-info text
-    const ms = f.matchState;
-    const bonusEl = document.getElementById('lm-bonus-info');
-    if(bonusEl) bonusEl.innerHTML = `
-      ${gName('A')}: <strong style="color:var(--teal)">${ms.matchPointsA||0}</strong> pts &nbsp;|&nbsp;
-      ${gName('B')}: <strong style="color:var(--blue)">${ms.matchPointsB||0}</strong> pts
-      &nbsp;<span style="color:var(--gold);font-size:.8rem">(+${bonus} bonus)</span>`;
+    var f = S.fixtures[LM.fixtureIdx]; if(!f) return;
+    applyMatchBonus(f.id);
   }
 }
 
@@ -3944,52 +4141,92 @@ function checkMatchEnd(f, ms){
 }
 
 // ─── Compute match points and bonus ───
-function computeMatchPoints(f, ms, bonusOverride){
+function computeMatchPoints(f, ms){
   if(!ms.winner) return;
-  // Determine loser's score in the deciding set (for reference)
-  const decSet=ms.sets[ms.sets.length-1]||ms.sets[ms.currentSetIndex];
-  const loserScore=ms.winner==='A'?decSet.pointsB:decSet.pointsA;
-  // Store loser score for bonus prompt
-  ms.loserScore = loserScore;
-  // Use manual bonus if provided, else default to 0 (organizer will set it)
-  const bonus = (typeof bonusOverride === 'number') ? Math.max(0, Math.min(2, bonusOverride)) : (ms.bonusA||ms.bonusB||0);
-  const total = Math.min(4, 2 + bonus);
-  if(ms.winner==='A'){ ms.matchPointsA=total; ms.matchPointsB=0; ms.bonusA=bonus; ms.bonusB=0; }
-  else { ms.matchPointsB=total; ms.matchPointsA=0; ms.bonusB=bonus; ms.bonusA=0; }
-  ms.bonusManuallySet = (typeof bonusOverride === 'number');
+  var rules = getRules();
+  var base  = rules.baseWinPoints;
+  var isSingle = (f.matchType !== 'BO3');
+  var completedSets = (ms.sets||[]).filter(function(s){return s.winner;});
+  var setsWonA = completedSets.filter(function(s){return s.winner==='A';}).length;
+  var setsWonB = completedSets.filter(function(s){return s.winner==='B';}).length;
+  var winnerSets = ms.winner==='A' ? setsWonA : setsWonB;
+  var loserSets  = ms.winner==='A' ? setsWonB : setsWonA;
+
+  var directBonus=0, setBonuses=[], totalBonus=0;
+
+  if(isSingle){
+    var decSet = ms.sets[ms.sets.length-1] || ms.sets[ms.currentSetIndex]||{};
+    var loserScore = ms.winner==='A'?(decSet.pointsB||0):(decSet.pointsA||0);
+    ms.loserScore = loserScore;
+    var b = getBonusForScore(loserScore, rules.singleSetBonuses);
+    setBonuses = [{setIndex:0, loserScore:loserScore, bonus:b}];
+    totalBonus = b;
+  } else {
+    var isSweep = (winnerSets===2 && loserSets===0);
+    directBonus = isSweep ? rules.bo3DirectBonuses.win20 : rules.bo3DirectBonuses.win21;
+    completedSets.forEach(function(s,idx){
+      if(s.winner !== ms.winner) return;
+      var ls = ms.winner==='A'?(s.pointsB||0):(s.pointsA||0);
+      var sb = getBonusForScore(ls, rules.bo3PerSetBonuses);
+      setBonuses.push({setIndex:idx, loserScore:ls, bonus:sb});
+      totalBonus += sb;
+    });
+    totalBonus += directBonus;
+    // Store loserScore as the last set's loser score for legacy compat
+    var lastWonSet = completedSets.filter(function(s){return s.winner===ms.winner;}).pop()||{};
+    ms.loserScore = ms.winner==='A'?(lastWonSet.pointsB||0):(lastWonSet.pointsA||0);
+  }
+
+  var total = base + totalBonus;
+  ms.pointsBreakdown = {
+    winnerTeam:ms.winner, isSingle:isSingle,
+    baseWinPoints:base, directBonus:isSingle?0:directBonus,
+    setBonuses:setBonuses, totalBonus:totalBonus, total:total
+  };
+  if(ms.winner==='A'){ms.matchPointsA=total;ms.matchPointsB=0;ms.bonusA=totalBonus;ms.bonusB=0;}
+  else{ms.matchPointsB=total;ms.matchPointsA=0;ms.bonusB=totalBonus;ms.bonusA=0;}
+  ms.bonusManuallySet=false;
 }
 
 // Apply a manual bonus to a completed match and save
-function applyMatchBonus(fid, bonus){
-  const f = S.fixtures.find(x=>x.id===fid); if(!f) return;
-  const ms = f.matchState; if(!ms||ms.status!=='completed') return;
-  computeMatchPoints(f, ms, parseInt(bonus)||0);
+function applyMatchBonus(fid){
+  var f = S.fixtures.find(function(x){return x.id===fid;}); if(!f) return;
+  var ms = f.matchState; if(!ms||ms.status!=='completed') return;
+  computeMatchPoints(f, ms);
   saveLocal(); saveFB();
-  // Refresh everywhere
   renderFixturesUI();
-  const bonusEl = document.getElementById('lm-bonus-info');
+  var bonusEl = document.getElementById('lm-bonus-info');
   if(bonusEl) bonusEl.innerHTML = renderBonusInfo(ms);
   refreshStandings();
-  toast('Bonus updated ✓');
+  toast('Points recalculated ✓');
 }
 
 function renderBonusInfo(ms){
-  const b = ms.winner==='A' ? ms.bonusA : ms.bonusB;
-  const loser = ms.loserScore !== undefined ? ms.loserScore : '?';
-  return `<div style="margin-bottom:10px">
-    <strong>${gName(ms.winner)} wins!</strong> &nbsp;
-    ${gName('A')}: <strong style="color:var(--teal)">${ms.matchPointsA||0}</strong> pts &nbsp;|&nbsp;
-    ${gName('B')}: <strong style="color:var(--blue)">${ms.matchPointsB||0}</strong> pts
-    <span style="color:var(--ash);font-size:.78rem;margin-left:6px">(Bonus: +${b})</span>
-  </div>
-  <div class="bonus-input-row">
-    <span style="font-size:.78rem;color:var(--ash)">Loser score: <strong style="color:var(--cream)">${loser}</strong> &nbsp;·&nbsp; Set bonus:</span>
-    <div style="display:flex;gap:6px;margin-top:6px">
-      <button class="bonus-chip ${b===0?'active':''}" onclick="setMatchBonus(0)">+0 pts</button>
-      <button class="bonus-chip ${b===1?'active':''}" onclick="setMatchBonus(1)">+1 bonus</button>
-      <button class="bonus-chip ${b===2?'active':''}" onclick="setMatchBonus(2)">+2 bonus</button>
-    </div>
-  </div>`;
+  var winPts = ms.winner==='A'?(ms.matchPointsA||0):(ms.matchPointsB||0);
+  var bd = ms.pointsBreakdown || {};
+  var wTeam = ms.winner;
+  // Build breakdown rows
+  var rows = '';
+  rows += '<tr><td style="color:var(--ash)">Win points</td><td style="color:var(--cream);text-align:right">+' + (bd.baseWinPoints||2) + '</td></tr>';
+  if(!bd.isSingle && bd.directBonus){
+    var sweepLbl = (ms.sets.filter(function(s){return s.winner===wTeam;}).length===2 &&
+                    ms.sets.filter(function(s){return s.winner&&s.winner!==wTeam;}).length===0)
+                  ? '2–0 sweep bonus' : '2–1 bonus';
+    rows += '<tr><td style="color:var(--gold)">'+sweepLbl+'</td><td style="color:var(--gold);text-align:right">+'+bd.directBonus+'</td></tr>';
+  }
+  (bd.setBonuses||[]).forEach(function(sb,i){
+    var lbl = bd.isSingle ? 'Score bonus (loser: '+sb.loserScore+')' : 'Set '+(i+1)+' bonus (loser: '+sb.loserScore+')';
+    var col = sb.bonus>0 ? 'var(--fire3)' : 'var(--ash)';
+    rows += '<tr><td style="color:'+col+'">'+lbl+'</td><td style="color:'+col+';text-align:right">+'+ sb.bonus+'</td></tr>';
+  });
+  rows += '<tr class="bd-total"><td>Total awarded</td><td style="text-align:right">'+winPts+' pts</td></tr>';
+
+  return '<div style="margin-bottom:10px">'
+    +'<strong>'+gName(wTeam)+' wins!</strong> &nbsp;'
+    +gName('A')+': <strong style="color:var(--teal)">'+(ms.matchPointsA||0)+'</strong> pts &nbsp;|&nbsp;'
+    +gName('B')+': <strong style="color:var(--blue)">'+(ms.matchPointsB||0)+'</strong> pts'
+    +'</div>'
+    +'<table class="bd-table">'+rows+'</table>';
 }
 
 // ─── Undo last point ───
@@ -4189,111 +4426,143 @@ function computeTeamTotals(){
 // ⑬ PLAYER STATS & PPI
 // ═══════════════════════════════════════════════════════════
 function computePlayerStats(){
-  const allPlayers=[...(S.groupA||[]),...(S.groupB||[])];
-  const stats={};
-  allPlayers.forEach(p=>{
-    stats[p.id]={...p, matchesPlayed:0, matchesWon:0, pointsScored:0, pointsConceded:0,
-      bonusEarned:0, adaptabilityPartners:[], adaptabilityWins:0,
-      setsWon:0, reasonCounts:{},ppi:0};
+  var allPlayers=[...(S.groupA||[]),...(S.groupB||[])];
+  var stats={};
+  allPlayers.forEach(function(p){
+    stats[p.id]=Object.assign({},p,{
+      matchesPlayed:0,matchesWon:0,pointsScored:0,pointsConceded:0,
+      bonusEarned:0,adaptabilityPartners:[],adaptabilityWins:0,
+      setsWon:0,setsLost:0,reasonCounts:{},ppi:0,
+      mvpScore:0,mvpMode:'none',
+      totalSetPtsWon:0,totalSetPtsLost:0,matchPointsTotal:0,
+      fullMatchCount:0,manualMatchCount:0,
+      winners:0,clutch18:0,clutch20:0,maxStreak:0,
+      goldenPoints:0,comebackWins:0
+    });
   });
 
-  (S.fixtures||[]).forEach(f=>{
-    const ms=f.matchState||{};
+  (S.fixtures||[]).forEach(function(f){
+    var ms=f.matchState||{};
     if(ms.status!=='completed') return;
-    const playersInMatch=[...f.pairA,...f.pairB];
-    playersInMatch.forEach(id=>{ if(stats[id]) stats[id].matchesPlayed++; });
+    var allIds=[...(f.pairA||[]),...(f.pairB||[])];
+    allIds.forEach(function(id){if(stats[id])stats[id].matchesPlayed++;});
+    var hasEvents=ms.sets.some(function(s){return s.events&&s.events.length>0;});
 
-    // Wins
     if(ms.winner){
-      const winPair=ms.winner==='A'?f.pairA:f.pairB;
-      const bonus=ms.winner==='A'?ms.bonusA:ms.bonusB;
-      winPair.forEach(id=>{
-        if(!stats[id]) return;
+      var winPair=ms.winner==='A'?f.pairA:f.pairB;
+      var bonus  =ms.winner==='A'?(ms.bonusA||0):(ms.bonusB||0);
+      var mpts   =ms.winner==='A'?(ms.matchPointsA||0):(ms.matchPointsB||0);
+      winPair.forEach(function(id){
+        if(!stats[id])return;
         stats[id].matchesWon++;
-        stats[id].bonusEarned+=bonus/winPair.length; // split equally
-        // Adaptability: track unique partner wins
-        const partner=winPair.find(x=>x!==id);
-        if(partner&&!stats[id].adaptabilityPartners.includes(partner)){
+        stats[id].bonusEarned+=bonus/winPair.length;
+        stats[id].matchPointsTotal+=mpts/winPair.length;
+        if(hasEvents) stats[id].fullMatchCount++;
+        else          stats[id].manualMatchCount++;
+        var partner=winPair.find(function(x){return x!==id;});
+        if(partner&&stats[id].adaptabilityPartners.indexOf(partner)<0){
           stats[id].adaptabilityPartners.push(partner);
           stats[id].adaptabilityWins++;
         }
       });
     }
 
-    // Point events
-    ms.sets.forEach(s=>{
-      s.events.forEach(ev=>{
-        if(stats[ev.scorerPlayerId]) stats[ev.scorerPlayerId].pointsScored++;
-        if(stats[ev.concederPlayerId]) stats[ev.concederPlayerId].pointsConceded++;
-        const rc=(ev.reasonCode||'OTHER').toUpperCase();
-        if(stats[ev.concederPlayerId]) stats[ev.concederPlayerId].reasonCounts[rc]=(stats[ev.concederPlayerId].reasonCounts[rc]||0)+1;
-        // Also track scored reason
-        if(stats[ev.scorerPlayerId]) stats[ev.scorerPlayerId].scoredReasons=stats[ev.scorerPlayerId].scoredReasons||{};
-        if(stats[ev.scorerPlayerId]) stats[ev.scorerPlayerId].scoredReasons[rc]=(stats[ev.scorerPlayerId].scoredReasons[rc]||0)+1;
+    // Set-level stats
+    (ms.sets||[]).forEach(function(s){
+      if(!s.winner)return;
+      var wp=s.winner==='A'?f.pairA:f.pairB;
+      var lp=s.winner==='A'?f.pairB:f.pairA;
+      var wpts=s.winner==='A'?s.pointsA:s.pointsB;
+      var lpts=s.winner==='A'?s.pointsB:s.pointsA;
+      wp.forEach(function(id){
+        if(!stats[id])return;
+        stats[id].setsWon++;
+        stats[id].totalSetPtsWon +=(wpts||0)/wp.length;
+        stats[id].totalSetPtsLost+=(lpts||0)/wp.length;
       });
-    });
-  });
-
-  // Compute clutch, streaks, winners, golden points
-  (S.fixtures||[]).forEach(f=>{
-    const ms=f.matchState||{};
-    if(ms.status!=='completed') return;
-    ms.sets.forEach((s, si)=>{
-      // Track cumulative scores per event to detect clutch
-      let runA=0, runB=0;
-      // Streak tracking per player
-      const streakMap={};
-      let currentStreak=null; // {pid, count}
-      // Trail deficit tracking (comeback hero)
-      const deficitA={}, deficitB={};
-      s.events.forEach((ev, ei)=>{
-        const pid=ev.scorerPlayerId;
-        const rc=(ev.reasonCode||'').toUpperCase();
-        // Winners count
-        if(rc==='WINNER'&&stats[pid]) stats[pid].winners=(stats[pid].winners||0)+1;
-        // Clutch: at score 18+/18+ or 20+/20+
-        const loA=ev.winningTeam==='A'?runA:runB;
-        const loB=ev.winningTeam==='A'?runB:runA;
-        if(loA>=18&&loB>=18&&stats[pid]) stats[pid].clutch18=(stats[pid].clutch18||0)+1;
-        if(loA>=20&&loB>=20&&stats[pid]) stats[pid].clutch20=(stats[pid].clutch20||0)+1;
-        // Increment running score
-        if(ev.winningTeam==='A') runA++; else runB++;
-        // Golden point: set ends 31-30
-        if(s.winner&&s.pointsA+s.pointsB===61&&stats[pid]) stats[pid].goldenPoints=(stats[pid].goldenPoints||0)+1;
-        // Streak
-        if(currentStreak&&currentStreak.pid===pid){
-          currentStreak.count++;
-        } else {
-          currentStreak={pid, count:1};
-        }
-        if(stats[pid]) stats[pid].maxStreak=Math.max(stats[pid].maxStreak||0, currentStreak.count);
-        // Comeback: track if a team was down 5+ at some point in this set
-        if(runA-runB<=-5) deficitA.hit=true;
-        if(runB-runA<=-5) deficitB.hit=true;
+      lp.forEach(function(id){
+        if(!stats[id])return;
+        stats[id].setsLost++;
+        stats[id].totalSetPtsLost+=(wpts||0)/lp.length;
+        stats[id].totalSetPtsWon +=(lpts||0)/lp.length;
       });
-      // Mark comeback if the team that was 5+ down won the set
-      if(s.winner==='A'&&deficitA.hit){
-        f.pairA.forEach(pid=>{ if(stats[pid]) stats[pid].comebackWins=(stats[pid].comebackWins||0)+1; });
-      }
-      if(s.winner==='B'&&deficitB.hit){
-        f.pairB.forEach(pid=>{ if(stats[pid]) stats[pid].comebackWins=(stats[pid].comebackWins||0)+1; });
+      // Point events
+      if(hasEvents){
+        (s.events||[]).forEach(function(ev){
+          if(stats[ev.scorerPlayerId])  stats[ev.scorerPlayerId].pointsScored++;
+          if(stats[ev.concederPlayerId])stats[ev.concederPlayerId].pointsConceded++;
+          var rc=(ev.reasonCode||'OTHER').toUpperCase();
+          if(stats[ev.concederPlayerId])
+            stats[ev.concederPlayerId].reasonCounts[rc]=(stats[ev.concederPlayerId].reasonCounts[rc]||0)+1;
+          if(stats[ev.scorerPlayerId]){
+            stats[ev.scorerPlayerId].scoredReasons=stats[ev.scorerPlayerId].scoredReasons||{};
+            stats[ev.scorerPlayerId].scoredReasons[rc]=(stats[ev.scorerPlayerId].scoredReasons[rc]||0)+1;
+          }
+        });
       }
     });
   });
 
-  // Compute PPI
-  Object.values(stats).forEach(p=>{
-    p.ppi = (p.matchesWon*5) + (p.pointsScored/10) + (p.bonusEarned*2) + p.adaptabilityWins;
-    p.ppi=Math.round(p.ppi*10)/10;
-    p.winners=p.winners||0;
-    p.clutch18=p.clutch18||0;
-    p.clutch20=p.clutch20||0;
-    p.maxStreak=p.maxStreak||0;
-    p.goldenPoints=p.goldenPoints||0;
-    p.comebackWins=p.comebackWins||0;
+  // ── Clutch / streak / winners / comeback (point-by-point only) ──
+  (S.fixtures||[]).forEach(function(f){
+    var ms=f.matchState||{};
+    if(ms.status!=='completed')return;
+    var hasEvents=ms.sets.some(function(s){return s.events&&s.events.length>0;});
+    if(!hasEvents)return;
+    (ms.sets||[]).forEach(function(s){
+      var runA=0,runB=0,cur=null,dA={},dB={};
+      (s.events||[]).forEach(function(ev){
+        var pid=ev.scorerPlayerId;
+        var rc=(ev.reasonCode||'').toUpperCase();
+        if(rc==='WINNER'&&stats[pid])stats[pid].winners++;
+        if(runA>=18&&runB>=18&&stats[pid])stats[pid].clutch18++;
+        if(runA>=20&&runB>=20&&stats[pid])stats[pid].clutch20++;
+        if(ev.winningTeam==='A')runA++;else runB++;
+        if(s.winner&&s.pointsA+s.pointsB===61&&stats[pid])stats[pid].goldenPoints++;
+        if(cur&&cur.pid===pid)cur.count++;else cur={pid:pid,count:1};
+        if(stats[pid])stats[pid].maxStreak=Math.max(stats[pid].maxStreak,cur.count);
+        if(runA-runB<=-5)dA.hit=true;
+        if(runB-runA<=-5)dB.hit=true;
+      });
+      if(s.winner==='A'&&dA.hit)f.pairA.forEach(function(pid){if(stats[pid])stats[pid].comebackWins++;});
+      if(s.winner==='B'&&dB.hit)f.pairB.forEach(function(pid){if(stats[pid])stats[pid].comebackWins++;});
+    });
   });
 
-  return Object.values(stats).sort((a,b)=>b.ppi-a.ppi);
+  // ── MVP Score (hybrid: full data vs manual estimate) ──
+  Object.values(stats).forEach(function(p){
+    var hasFull=p.fullMatchCount>0, hasMnl=p.manualMatchCount>0;
+    var fullScore=0, mnlScore=0;
+    if(hasFull){
+      fullScore=(p.matchesWon*5)+(p.pointsScored*1)+(p.winners*0.5)
+               +(p.clutch20*1.5)+(p.bonusEarned*2)-(p.pointsConceded*0.5);
+    }
+    if(hasMnl){
+      mnlScore=(p.matchesWon*5)+(p.matchPointsTotal*2)+(p.setsWon*1)
+              +(p.totalSetPtsWon/10)-(p.totalSetPtsLost/20);
+    }
+    if(hasFull&&hasMnl){
+      var tot=p.fullMatchCount+p.manualMatchCount;
+      p.mvpScore=(fullScore*(p.fullMatchCount/tot))+(mnlScore*(p.manualMatchCount/tot));
+      p.mvpMode='hybrid';
+    } else if(hasFull){
+      p.mvpScore=fullScore; p.mvpMode='full';
+    } else if(hasMnl){
+      p.mvpScore=mnlScore;  p.mvpMode='manual';
+    } else {
+      p.mvpScore=0; p.mvpMode='none';
+    }
+    p.mvpScore=Math.round(p.mvpScore*10)/10;
+    p.ppi=Math.round(((p.matchesWon*5)+(p.pointsScored/10)+(p.bonusEarned*2)+p.adaptabilityWins)*10)/10;
+  });
+
+  return Object.values(stats).sort(function(a,b){
+    if(b.mvpScore!==a.mvpScore)return b.mvpScore-a.mvpScore;
+    if(b.bonusEarned!==a.bonusEarned)return b.bonusEarned-a.bonusEarned;
+    if(a.pointsConceded!==b.pointsConceded)return a.pointsConceded-b.pointsConceded;
+    if(b.matchesWon!==a.matchesWon)return b.matchesWon-a.matchesWon;
+    return (a.name||'').localeCompare(b.name||'');
+  });
 }
 
 // ─── Compute achievements (called from refreshStats) ───
@@ -4577,11 +4846,20 @@ function refreshStats(){
   const sniper=[...played].sort((a,b)=>b.winners-a.winners)[0];
 
   html+=`<div class="ppi-cards">
-    <div class="ppi-card">
-      <h4>👑 MVP</h4>
-      <div class="ppi-name">${mvp.name}</div>
-      <div class="ppi-val">PPI: ${mvp.ppi}</div>
-      <div class="ppi-sub">${mvp.matchesWon}W · ${mvp.pointsScored} pts scored</div>
+    <div class="ppi-card" style="position:relative">
+      <h4>👑 Tournament MVP</h4>
+      <div class="ppi-name">\${mvp.name}</div>
+      <div class="ppi-val">Score: \${mvp.mvpScore}</div>
+      <div class="ppi-sub">
+        \${mvp.matchesWon}W · Bonus: +\${Math.round(mvp.bonusEarned*10)/10}
+        \${mvp.mvpMode!=='none'?' · '+mvp.pointsScored+' pts scored':''}
+      </div>
+      <div class="mvp-badge">
+        \${mvp.mvpMode==='full'?'📊 Full data':''}
+        \${mvp.mvpMode==='manual'?'✏️ Estimated (manual scores)':''}
+        \${mvp.mvpMode==='hybrid'?'🔀 Hybrid (mixed data)':''}
+        \${mvp.mvpMode==='none'?'No data':''}
+      </div>
     </div>
     <div class="ppi-card">
       <h4>🏸 Top Scorer</h4>
